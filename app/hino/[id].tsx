@@ -15,11 +15,15 @@ export default function HinoDetailScreen() {
     const found = MOCK_HINOS.find((h) => h.id === id || String(h.numero) === id);
     if (!found) {
       Toast.show('Hino não encontrado');
-      router.back();
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/');
+      }
     } else {
       setHino(found);
     }
-  }, [id]);
+  }, [id, router]);
 
   if (!hino) {
     return (
@@ -36,7 +40,7 @@ export default function HinoDetailScreen() {
           title: `Hino ${hino.numero}`,
           headerBackTitle: 'Voltar',
           headerRight: () => (
-            <View className="flex-row items-center space-x-2">
+            <View className="flex-row items-center gap-2">
               <Pressable
                 onPress={() => setFontSize((s) => Math.max(14, s - 2))}
                 className="px-2 py-1 bg-gray-100 rounded"
