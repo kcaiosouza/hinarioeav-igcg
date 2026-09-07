@@ -19,6 +19,7 @@ import { Toast } from '../../components/ui/Toast';
 import { HymnOptionsSheet } from '../../components/hinario/HymnOptionsSheet';
 
 import { getHino, findHinoAnyBook, getAllHymnsList } from '../../data/hinosRepository';
+import { normalizeSearchText } from '../../utils/textNormalize';
 
 function resolveHino(
   id?: string,
@@ -39,12 +40,12 @@ function resolveHino(
     return across.hino;
   }
 
-  // 3. Search by title if provided
+  // 3. Search by title if provided (ignoring accents & punctuation)
   if (titleParam) {
     const all = getAllHymnsList();
-    const titleLower = titleParam.trim().toLowerCase();
+    const titleNorm = normalizeSearchText(titleParam);
     const match = all.find(
-      (h) => h.titulo.toLowerCase() === titleLower
+      (h) => normalizeSearchText(h.titulo) === titleNorm
     );
     if (match) return match;
   }

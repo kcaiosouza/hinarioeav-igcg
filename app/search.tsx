@@ -12,6 +12,12 @@ import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
 import { getAllHymnsList } from '../data/hinosRepository';
+import { normalizeSearchText } from '../utils/textNormalize';
+
+interface Section {
+  raw: string;
+  norm: string;
+}
 
 interface SearchItem {
   id: string;
@@ -21,7 +27,12 @@ interface SearchItem {
   bookKey: string;
   category?: string;
   snippet?: string;
-  fullLyrics?: string;
+  defaultSnippet?: string;
+  normNumber: string;
+  normTitle: string;
+  normBook: string;
+  normLyrics: string;
+  sections: Section[];
 }
 
 export default function SearchScreen() {
@@ -32,11 +43,25 @@ export default function SearchScreen() {
   const catalog = useMemo<SearchItem[]>(() => {
     const list = getAllHymnsList();
     return list.map((hino) => {
+      const rawSections: string[] = [];
+      if (hino.estrofes) {
+        rawSections.push(...hino.estrofes);
+      }
+      if (hino.coro) {
+        rawSections.push(hino.coro);
+      }
+
+      const sections: Section[] = rawSections.map((raw) => ({
+        raw,
+        norm: normalizeSearchText(raw),
+      }));
+
       const firstLyrics = hino.estrofes[0] || hino.coro || '';
-      const cleanSnippet = firstLyrics
+      const defaultSnippet = firstLyrics
         ? firstLyrics.replace(/\r?\n/g, ' ').slice(0, 80) + '...'
         : undefined;
-      const allText = [hino.titulo, ...(hino.estrofes || []), hino.coro || ''].join(' ').toLowerCase();
+
+      const allLyrics = [hino.titulo, ...(hino.estrofes || []), hino.coro || ''].join(' ');
 
       return {
         id: hino.id,
@@ -45,23 +70,74 @@ export default function SearchScreen() {
         bookName: hino.categoria,
         bookKey: hino.bookKey,
         category: hino.categoria,
-        snippet: cleanSnippet,
-        fullLyrics: allText,
+        snippet: defaultSnippet,
+        defaultSnippet,
+        normNumber: normalizeSearchText(String(hino.numero)),
+        normTitle: normalizeSearchText(hino.titulo),
+        normBook: normalizeSearchText(hino.categoria),
+        normLyrics: normalizeSearchText(allLyrics),
+        sections,
       };
     });
   }, []);
 
   const filteredResults = useMemo(() => {
-    const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return catalog;
+    const normalizedQuery = normalizeSearchText(query);
+    if (!normalizedQuery) return catalog;
 
-    return catalog.filter(
-      (item) =>
-        item.number.includes(trimmed) ||
-        item.title.toLowerCase().includes(trimmed) ||
-        item.bookName.toLowerCase().includes(trimmed) ||
-        (item.fullLyrics ? item.fullLyrics.includes(trimmed) : false)
-    );
+    const queryWords = normalizedQuery.split(' ').filter(Boolean);
+
+    const scoredItems: Array<{ item: SearchItem; score: number }> = [];
+
+    for (const item of catalog) {
+      let score = 0;
+      let matchingSnippet = item.defaultSnippet;
+
+      // Scoring rules:
+      // 1. Exact number match
+      if (item.normNumber === normalizedQuery) {
+        score = 100;
+      } else if (item.normNumber.startsWith(normalizedQuery)) {
+        score = 80;
+      } else if (item.normTitle === normalizedQuery) {
+        score = 90;
+      } else if (item.normTitle.includes(normalizedQuery)) {
+        score = 70;
+      } else if (item.normLyrics.includes(normalizedQuery)) {
+        score = 50;
+      } else if (
+        queryWords.length > 1 &&
+        queryWords.every((w) => item.normLyrics.includes(w))
+      ) {
+        score = 30;
+      } else if (item.normBook.includes(normalizedQuery)) {
+        score = 20;
+      }
+
+      if (score > 0) {
+        // Look for the specific section that matched the query to show in snippet
+        const matchSection = item.sections.find(
+          (sec) =>
+            sec.norm.includes(normalizedQuery) ||
+            (queryWords.length > 1 && queryWords.every((w) => sec.norm.includes(w)))
+        );
+        if (matchSection) {
+          matchingSnippet =
+            matchSection.raw.replace(/\r?\n/g, ' ').slice(0, 80) + '...';
+        }
+
+        scoredItems.push({
+          item: {
+            ...item,
+            snippet: matchingSnippet,
+          },
+          score,
+        });
+      }
+    }
+
+    scoredItems.sort((a, b) => b.score - a.score || Number(a.item.number) - Number(b.item.number));
+    return scoredItems.map((entry) => entry.item);
   }, [catalog, query]);
 
   const handleSelectHymn = (item: SearchItem) => {
