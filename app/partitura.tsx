@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import {
   Dimensions,
   Image,
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { THEME_COLORS, THEME_FONTS } from "../constants/theme";
 import { getPartitura } from "../data/partiturasManifest";
+import { canNavigate, getAdjacentHymn } from "../utils/partituraNavigation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PAGE_ASPECT_RATIO = 612 / 792;
@@ -28,6 +29,33 @@ export default function PartituraScreen() {
   const numero = params.hinoNumero ?? "";
   const titulo = params.hinoTitulo ?? "Partitura";
   const book = params.book ?? "hinos";
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const canGoPrev = canNavigate(book, numero, "prev");
+  const canGoNext = canNavigate(book, numero, "next");
+
+  const handlePrevHymn = useCallback(() => {
+    const prev = getAdjacentHymn(book, numero, "prev");
+    if (!prev) return;
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    router.setParams({
+      hinoNumero: String(prev.numero),
+      hinoTitulo: prev.titulo,
+      book,
+    });
+  }, [book, numero, router]);
+
+  const handleNextHymn = useCallback(() => {
+    const next = getAdjacentHymn(book, numero, "next");
+    if (!next) return;
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    router.setParams({
+      hinoNumero: String(next.numero),
+      hinoTitulo: next.titulo,
+      book,
+    });
+  }, [book, numero, router]);
 
   const partitura = getPartitura(book, numero);
 
@@ -107,6 +135,7 @@ export default function PartituraScreen() {
       <View style={styles.viewerContainer}>
         {partitura ? (
           <ScrollView
+            ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             maximumZoomScale={4}
@@ -155,6 +184,55 @@ export default function PartituraScreen() {
             </Pressable>
           </View>
         )}
+      </View>
+
+      {/* Bottom Navigation Footer */}
+      <View style={styles.footerBar}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Hino anterior"
+          disabled={!canGoPrev}
+          onPress={handlePrevHymn}
+          style={({ pressed }) => [
+            styles.navBtn,
+            !canGoPrev && styles.btnDisabled,
+            pressed && canGoPrev && styles.btnPressed,
+          ]}
+        >
+          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M15 19l-7-7 7-7"
+              stroke={canGoPrev ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        </Pressable>
+
+        <View style={styles.footerSpacer} />
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Próximo hino"
+          disabled={!canGoNext}
+          onPress={handleNextHymn}
+          style={({ pressed }) => [
+            styles.navBtn,
+            !canGoNext && styles.btnDisabled,
+            pressed && canGoNext && styles.btnPressed,
+          ]}
+        >
+          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M9 5l7 7-7 7"
+              stroke={canGoNext ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -305,5 +383,31 @@ const styles = StyleSheet.create({
     fontFamily: THEME_FONTS.inter.semiBold,
     fontSize: 14,
     color: THEME_COLORS.cream,
+  },
+  footerBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 56,
+    paddingHorizontal: 20,
+    backgroundColor: THEME_COLORS.surface,
+    borderTopWidth: 1,
+    borderTopColor: THEME_COLORS.line,
+  },
+  footerSpacer: {
+    flex: 1,
+  },
+  navBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: THEME_COLORS.surfaceRaised,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnDisabled: {
+    opacity: 0.25,
   },
 });
