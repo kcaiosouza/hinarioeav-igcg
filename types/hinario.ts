@@ -1,4 +1,4 @@
-export type BookKey = 'hinos' | 'canticos' | 'suplemento' | 'novo';
+export type BookKey = 'hinos' | 'canticos' | 'suplemento' | 'novo' | 'diversos';
 
 export interface BookInfo {
   key: BookKey;
