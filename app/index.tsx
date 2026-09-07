@@ -13,6 +13,7 @@ import { Keypad } from '../components/hinario/Keypad';
 import { SearchCTA } from '../components/hinario/SearchCTA';
 import { ResultArea } from '../components/hinario/ResultArea';
 import { ToastNotice } from '../components/hinario/ToastNotice';
+import { SideDrawer } from '../components/hinario/SideDrawer';
 
 export default function MainScreen() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function MainScreen() {
   const [activeKey, setActiveKey] = useState<BookKey>('hinos');
   const [currentNumber, setCurrentNumber] = useState<string>('');
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [toast, setToast] = useState<{
     visible: boolean;
     bookName: string;
@@ -28,7 +30,7 @@ export default function MainScreen() {
   } | null>(null);
 
   const handleMenuPress = () => {
-    Alert.alert('Menu', 'Funcionalidades adicionais em breve.');
+    setIsDrawerOpen(true);
   };
 
   const handleSelectBook = (key: BookKey) => {
@@ -108,6 +110,11 @@ export default function MainScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <SideDrawer
+        visible={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        activeRoute="/"
+      />
       <View style={styles.wrapper}>
         <TopBar onMenuPress={handleMenuPress} />
         <ToastNotice

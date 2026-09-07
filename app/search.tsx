@@ -1,0 +1,331 @@
+import React, { useMemo, useState } from 'react';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
+import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
+import { INITIAL_BOOKS } from '../data/mockHinario';
+import { MOCK_HINOS } from '../data/mockHinos';
+
+interface SearchItem {
+  id: string;
+  number: string;
+  title: string;
+  bookName: string;
+  bookKey: string;
+  category?: string;
+  snippet?: string;
+}
+
+export default function SearchScreen() {
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+
+  // Build searchable index from catalog and mock hymns
+  const catalog = useMemo<SearchItem[]>(() => {
+    const items: SearchItem[] = [];
+    const seen = new Set<string>();
+
+    // From INITIAL_BOOKS
+    Object.entries(INITIAL_BOOKS).forEach(([bookKey, book]) => {
+      Object.entries(book.data).forEach(([num, title]) => {
+        const uniqueKey = `${bookKey}-${num}`;
+        if (!seen.has(uniqueKey)) {
+          seen.add(uniqueKey);
+          items.push({
+            id: num,
+            number: num,
+            title,
+            bookName: book.name,
+            bookKey,
+          });
+        }
+      });
+    });
+
+    // From MOCK_HINOS for richer data / snippets
+    MOCK_HINOS.forEach((hino) => {
+      const uniqueKey = `hinos-${hino.numero}`;
+      if (!seen.has(uniqueKey)) {
+        seen.add(uniqueKey);
+        items.push({
+          id: String(hino.numero),
+          number: String(hino.numero),
+          title: hino.titulo,
+          bookName: 'Hinos',
+          bookKey: 'hinos',
+          category: hino.categoria,
+          snippet: hino.estrofes[0]?.slice(0, 70) + '...',
+        });
+      }
+    });
+
+    return items;
+  }, []);
+
+  const filteredResults = useMemo(() => {
+    const trimmed = query.trim().toLowerCase();
+    if (!trimmed) return catalog;
+
+    return catalog.filter(
+      (item) =>
+        item.number.includes(trimmed) ||
+        item.title.toLowerCase().includes(trimmed) ||
+        item.bookName.toLowerCase().includes(trimmed) ||
+        (item.snippet && item.snippet.toLowerCase().includes(trimmed))
+    );
+  }, [catalog, query]);
+
+  const handleSelectHymn = (item: SearchItem) => {
+    router.push({
+      pathname: '/hino/[id]',
+      params: { id: item.number, book: item.bookKey, title: item.title },
+    });
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.topbar}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+            hitSlop={8}
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && styles.backButtonPressed,
+            ]}
+          >
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M15 19l-7-7 7-7"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Pressable>
+          <Text style={styles.headerTitle}>Buscar Hinos</Text>
+          <View style={styles.ghostSpacer} />
+        </View>
+
+        {/* Search Input Bar */}
+        <View style={styles.inputContainer}>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              stroke={THEME_COLORS.muted}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+          <TextInput
+            style={styles.input}
+            placeholder="Título, número ou trecho..."
+            placeholderTextColor={THEME_COLORS.mutedDim}
+            value={query}
+            onChangeText={setQuery}
+            autoFocus
+            returnKeyType="search"
+            accessibilityLabel="Campo de busca"
+          />
+          {query.length > 0 && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Limpar busca"
+              onPress={() => setQuery('')}
+              hitSlop={8}
+              style={styles.clearBtn}
+            >
+              <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+                <Path
+                  d="M2 2L12 12M12 2L2 12"
+                  stroke={THEME_COLORS.muted}
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                />
+              </Svg>
+            </Pressable>
+          )}
+        </View>
+
+        {/* Results List */}
+        <FlatList
+          data={filteredResults}
+          keyExtractor={(item, index) => `${item.bookKey}-${item.number}-${index}`}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>Nenhum hino encontrado</Text>
+              <Text style={styles.emptySubtitle}>
+                Não encontramos correspondências para &quot;{query}&quot;.
+              </Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${item.bookName} ${item.number} ${item.title}`}
+              onPress={() => handleSelectHymn(item)}
+              style={({ pressed }) => [
+                styles.itemCard,
+                pressed && styles.itemCardPressed,
+              ]}
+            >
+              <View style={styles.itemHeader}>
+                <Text style={styles.itemBadge}>
+                  {item.bookName} · nº {item.number}
+                </Text>
+                {item.category && (
+                  <Text style={styles.itemCategory}>{item.category}</Text>
+                )}
+              </View>
+              <Text style={styles.itemTitle}>{item.title}</Text>
+              {item.snippet && (
+                <Text style={styles.itemSnippet}>{item.snippet}</Text>
+              )}
+            </Pressable>
+          )}
+        />
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.bg,
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+  },
+  topbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  backButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: THEME_COLORS.surface,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backButtonPressed: {
+    backgroundColor: THEME_COLORS.surfaceRaised,
+  },
+  headerTitle: {
+    fontFamily: THEME_FONTS.fraunces.semiBold,
+    fontSize: 20,
+    color: THEME_COLORS.cream,
+  },
+  ghostSpacer: {
+    width: 38,
+    height: 38,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.surface,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginVertical: 12,
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 15,
+    color: THEME_COLORS.cream,
+    padding: 0,
+  },
+  clearBtn: {
+    padding: 4,
+  },
+  listContent: {
+    paddingBottom: 24,
+    gap: 10,
+  },
+  itemCard: {
+    backgroundColor: THEME_COLORS.surface,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  itemCardPressed: {
+    backgroundColor: THEME_COLORS.surfaceRaised,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  itemBadge: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 12,
+    color: THEME_COLORS.muted,
+  },
+  itemCategory: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 11,
+    color: THEME_COLORS.goldSoft,
+    textTransform: 'uppercase',
+  },
+  itemTitle: {
+    fontFamily: THEME_FONTS.fraunces.semiBold,
+    fontSize: 17,
+    color: THEME_COLORS.cream,
+  },
+  itemSnippet: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 13,
+    color: THEME_COLORS.mutedDim,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  emptyContainer: {
+    paddingVertical: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: {
+    fontFamily: THEME_FONTS.fraunces.semiBold,
+    fontSize: 18,
+    color: THEME_COLORS.cream,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 14,
+    color: THEME_COLORS.muted,
+    textAlign: 'center',
+  },
+});

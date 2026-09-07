@@ -48,6 +48,8 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" />
+        <Stack.Screen name="search" />
+        <Stack.Screen name="favorites" />
         <Stack.Screen name="hino/[id]" options={{ presentation: 'card' }} />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
