@@ -40,6 +40,7 @@ import {
   toggleFavorite,
 } from "../../services/favoritesService";
 import { normalizeSearchText } from "../../utils/textNormalize";
+import { getHymnNavTitle } from "../../utils/hymnDisplay";
 
 const EDGE_BACK_ZONE_WIDTH = 32; // Limite em pontos da extremidade esquerda reservado exclusivamente para o gesto nativo de voltar do iOS
 const HORIZONTAL_SWIPE_MIN_DISTANCE = 40; // Distância mínima para mudar de hino
@@ -123,6 +124,7 @@ export default function HinoDetailScreen() {
       const lower = hino.categoria.toLowerCase();
       if (lower.includes("cantico")) return "canticos";
       if (lower.includes("supl")) return "suplemento";
+      if (lower.includes("novo")) return "novo";
     }
     return "hinos";
   }, [book, hino?.categoria]);
@@ -426,7 +428,7 @@ export default function HinoDetailScreen() {
           </Pressable>
 
           <Text style={styles.navTitle} numberOfLines={1}>
-            {hino.numero > 0 ? `Hino ${hino.numero}` : hino.categoria || "Hino"}
+            {getHymnNavTitle(currentBookKey, hino.numero, hino.categoria)}
           </Text>
 
           <Pressable
