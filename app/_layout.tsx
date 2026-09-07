@@ -64,7 +64,7 @@ export default function RootLayout() {
           name="partitura"
           options={{
             presentation: 'card',
-            animation: 'slide_from_right',
+            animation: 'none',
             gestureEnabled: true,
           }}
         />
