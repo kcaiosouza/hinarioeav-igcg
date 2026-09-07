@@ -81,7 +81,47 @@ export default function PartituraScreen() {
           scalesPageToFit
           bounces={false}
           scrollEnabled
-          style={styles.webview}
+          style={[styles.webview, { backgroundColor: THEME_COLORS.bg }]}
+          containerStyle={{ backgroundColor: THEME_COLORS.bg }}
+          injectedJavaScript={`
+            (function() {
+              function applyBg() {
+                try {
+                  document.documentElement.style.setProperty('background', '${THEME_COLORS.bg}', 'important');
+                  document.documentElement.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
+                  if (document.body) {
+                    document.body.style.setProperty('background', '${THEME_COLORS.bg}', 'important');
+                    document.body.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
+                  }
+                  var style = document.getElementById('custom-pdf-bg-style');
+                  if (!style) {
+                    style = document.createElement('style');
+                    style.id = 'custom-pdf-bg-style';
+                    style.innerHTML = 'html, body { background: ${THEME_COLORS.bg} !important; background-color: ${THEME_COLORS.bg} !important; }';
+                    (document.head || document.documentElement).appendChild(style);
+                  }
+                } catch (e) {}
+              }
+              applyBg();
+              window.addEventListener('DOMContentLoaded', applyBg);
+              window.addEventListener('load', applyBg);
+              setTimeout(applyBg, 50);
+              setTimeout(applyBg, 300);
+              setTimeout(applyBg, 800);
+            })();
+            true;
+          `}
+          injectedJavaScriptBeforeContentLoaded={`
+            (function() {
+              try {
+                document.documentElement.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
+                if (document.body) {
+                  document.body.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
+                }
+              } catch (e) {}
+            })();
+            true;
+          `}
           startInLoadingState
           renderLoading={() => (
             <View style={styles.centerContainer}>
