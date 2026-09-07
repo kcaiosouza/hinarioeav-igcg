@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -92,6 +93,90 @@ export default function HinoDetailScreen() {
   const [fontSize, setFontSize] = useState<number>(18);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const currentBookKey: BookKey = useMemo(() => {
+    if (book && book in INITIAL_BOOKS) {
+      return book as BookKey;
+    }
+    if (hino?.categoria) {
+      const lower = hino.categoria.toLowerCase();
+      if (lower.includes('cantico')) return 'canticos';
+      if (lower.includes('supl')) return 'suplemento';
+    }
+    return 'hinos';
+  }, [book, hino?.categoria]);
+
+  const goToNextHymn = useCallback(() => {
+    if (!hino || hino.numero <= 0) return;
+    const targetNum = hino.numero + 1;
+    const targetHino = getHino(currentBookKey, targetNum);
+    if (!targetHino) {
+      Toast.show('Você já está no último hino deste hinário');
+      return;
+    }
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    router.replace({
+      pathname: '/hino/[id]',
+      params: {
+        id: String(targetNum),
+        book: currentBookKey,
+        title: targetHino.titulo,
+      },
+    });
+  }, [hino, currentBookKey, router]);
+
+  const goToPreviousHymn = useCallback(() => {
+    if (!hino || hino.numero <= 0) return;
+    const targetNum = hino.numero - 1;
+    if (targetNum < 1) {
+      Toast.show('Você já está no primeiro hino deste hinário');
+      return;
+    }
+    const targetHino = getHino(currentBookKey, targetNum);
+    if (!targetHino) {
+      Toast.show('Você já está no primeiro hino deste hinário');
+      return;
+    }
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    router.replace({
+      pathname: '/hino/[id]',
+      params: {
+        id: String(targetNum),
+        book: currentBookKey,
+        title: targetHino.titulo,
+      },
+    });
+  }, [hino, currentBookKey, router]);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          return (
+            Math.abs(gestureState.dx) > 25 &&
+            Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5
+          );
+        },
+        onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+          return (
+            Math.abs(gestureState.dx) > 25 &&
+            Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5
+          );
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx > 50) {
+            // Arrastar da esquerda para direita: volta um hino
+            goToPreviousHymn();
+          } else if (gestureState.dx < -50) {
+            // Arrastar da direita para esquerda: avança um hino
+            goToNextHymn();
+          }
+        },
+      }),
+    [goToPreviousHymn, goToNextHymn]
+  );
 
   const handleToggleFavorite = () => {
     setIsFavorite((prev) => {
@@ -116,6 +201,10 @@ export default function HinoDetailScreen() {
       [{ text: 'Ouvir Agora', onPress: () => {} }, { text: 'Fechar', style: 'cancel' }]
     );
   };
+
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  }, [id]);
 
   useEffect(() => {
     const found = resolveHino(id, book, title);
@@ -154,7 +243,7 @@ export default function HinoDetailScreen() {
         onOpenSheetMusic={handleOpenSheetMusic}
         onOpenIGCGMusic={handleOpenIGCGMusic}
       />
-      <View style={styles.container}>
+      <View style={styles.container} {...panResponder.panHandlers}>
         {/* Top Navigation Bar */}
         <View style={styles.topBar}>
           <Pressable
@@ -210,6 +299,7 @@ export default function HinoDetailScreen() {
 
         {/* Lyrics & Stanzas ScrollArea */}
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
