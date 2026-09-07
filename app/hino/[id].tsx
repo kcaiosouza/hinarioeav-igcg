@@ -312,6 +312,7 @@ export default function HinoDetailScreen() {
       params: {
         hinoNumero: String(hino?.numero ?? ""),
         hinoTitulo: hino?.titulo ?? "",
+        book: currentBookKey,
       },
     });
   };

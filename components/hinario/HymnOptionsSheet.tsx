@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -8,10 +8,10 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
+import { THEME_COLORS, THEME_FONTS } from "../../constants/theme";
 
 export interface HymnOptionsSheetProps {
   visible: boolean;
@@ -24,7 +24,7 @@ export interface HymnOptionsSheetProps {
   onOpenIGCGMusic: () => void;
 }
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export function HymnOptionsSheet({
   visible,
@@ -121,7 +121,7 @@ export function HymnOptionsSheet({
           }).start();
         }
       },
-    })
+    }),
   ).current;
 
   if (!showModal) return null;
@@ -235,7 +235,9 @@ export function HymnOptionsSheet({
             {/* 2. Favorite Toggle */}
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={isFavorite ? 'Remover dos favoritos' : 'Favoritar hino'}
+              accessibilityLabel={
+                isFavorite ? "Remover dos favoritos" : "Favoritar hino"
+              }
               onPress={onToggleFavorite}
               style={({ pressed }) => [
                 styles.optionButton,
@@ -243,18 +245,27 @@ export function HymnOptionsSheet({
               ]}
             >
               <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>{isFavorite ? '⭐' : '☆'}</Text>
+                <Text style={styles.optionIcon}>{isFavorite ? "⭐" : "☆"}</Text>
                 <View>
                   <Text style={styles.optionLabel}>
-                    {isFavorite ? 'Remover dos Favoritos' : 'Favoritar este Hino'}
+                    {isFavorite
+                      ? "Remover dos Favoritos"
+                      : "Favoritar este Hino"}
                   </Text>
                   <Text style={styles.optionSublabel}>
-                    {isFavorite ? 'Hino salvo na sua lista de favoritos' : 'Acesso rápido pelo menu'}
+                    {isFavorite
+                      ? "Hino salvo na sua lista de favoritos"
+                      : "Acesso rápido pelo menu"}
                   </Text>
                 </View>
               </View>
-              <Text style={[styles.statusBadge, isFavorite && styles.statusBadgeActive]}>
-                {isFavorite ? 'Salvo' : 'Favoritar'}
+              <Text
+                style={[
+                  styles.statusBadge,
+                  isFavorite && styles.statusBadgeActive,
+                ]}
+              >
+                {isFavorite ? "Salvo" : "Favoritar"}
               </Text>
             </Pressable>
 
@@ -269,10 +280,12 @@ export function HymnOptionsSheet({
               ]}
             >
               <View style={styles.optionLeft}>
-                <Text style={styles.optionIcon}>🎼</Text>
+                <Text style={styles.optionIcon}>♫</Text>
                 <View>
                   <Text style={styles.optionLabel}>Ver Partitura</Text>
-                  <Text style={styles.optionSublabel}>Pauta musical com harmonia</Text>
+                  <Text style={styles.optionSublabel}>
+                    O que quem toca quer ver
+                  </Text>
                 </View>
               </View>
               <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
@@ -301,12 +314,21 @@ export function HymnOptionsSheet({
                   <Text style={styles.musicIcon}>🎧</Text>
                 </View>
                 <View style={styles.musicTexts}>
-                  <Text style={styles.musicTitle}>Ouça esse hino no IGCGMusic</Text>
-                  <Text style={styles.musicSubtitle}>Disponível na plataforma oficial</Text>
+                  <Text style={styles.musicTitle}>
+                    Ouça esse hino no IGCGMusic
+                  </Text>
+                  <Text style={styles.musicSubtitle}>
+                    Disponível na plataforma oficial
+                  </Text>
                 </View>
               </View>
               <View style={styles.playBadge}>
-                <Svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor">
+                <Svg
+                  width={14}
+                  height={14}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
                   <Path d="M8 5v14l11-7z" fill={THEME_COLORS.ink} />
                 </Svg>
               </View>
@@ -321,31 +343,31 @@ export function HymnOptionsSheet({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   backdrop: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
   },
   sheet: {
-    backgroundColor: '#1b2b22',
+    backgroundColor: "#1b2b22",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderTopWidth: 1,
     borderTopColor: THEME_COLORS.line,
     paddingHorizontal: 20,
     elevation: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.45,
     shadowRadius: 16,
   },
   handleContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
   },
   handle: {
@@ -355,9 +377,9 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.mutedDim,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: THEME_COLORS.line,
@@ -375,8 +397,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.surface,
     borderWidth: 1,
     borderColor: THEME_COLORS.line,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   closeButtonPressed: {
     backgroundColor: THEME_COLORS.surfaceRaised,
@@ -385,9 +407,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: THEME_COLORS.surface,
     borderWidth: 1,
     borderColor: THEME_COLORS.line,
@@ -396,9 +418,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: THEME_COLORS.surface,
     borderWidth: 1,
     borderColor: THEME_COLORS.line,
@@ -410,8 +432,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.surfaceRaised,
   },
   optionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     flex: 1,
   },
@@ -431,8 +453,8 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   fontStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   stepperBtn: {
@@ -461,16 +483,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 100,
-    backgroundColor: 'rgba(218, 215, 205, 0.08)',
+    backgroundColor: "rgba(218, 215, 205, 0.08)",
   },
   statusBadgeActive: {
     color: THEME_COLORS.ink,
     backgroundColor: THEME_COLORS.goldSoft,
   },
   musicCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: THEME_COLORS.goldSoft,
     borderRadius: 16,
     paddingVertical: 14,
@@ -478,11 +500,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   musicCardPressed: {
-    backgroundColor: '#8fa07a',
+    backgroundColor: "#8fa07a",
   },
   musicCardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     flex: 1,
   },
@@ -490,9 +512,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(18, 32, 26, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(18, 32, 26, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   musicIcon: {
     fontSize: 18,
@@ -508,16 +530,16 @@ const styles = StyleSheet.create({
   musicSubtitle: {
     fontFamily: THEME_FONTS.inter.medium,
     fontSize: 12,
-    color: 'rgba(18, 32, 26, 0.75)',
+    color: "rgba(18, 32, 26, 0.75)",
     marginTop: 1,
   },
   playBadge: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: 'rgba(18, 32, 26, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(18, 32, 26, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 8,
   },
 });

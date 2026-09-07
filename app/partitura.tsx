@@ -1,12 +1,8 @@
-import { useAssets } from "expo-asset";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   Image,
-  ImageSourcePropType,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,18 +11,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { WebView } from "react-native-webview";
 import { THEME_COLORS, THEME_FONTS } from "../constants/theme";
-
-// Arquivo PDF original da partitura
-const SAMPLE_PDF = require("../assets/pdfs/exemple-file.pdf");
-
-// Páginas de alta resolução para plataformas sem visualizador nativo de PDF
-const FALLBACK_PAGES: { page: number; source: ImageSourcePropType }[] = [
-  { page: 1, source: require("../assets/pdfs/pages/page-1.png") },
-  { page: 2, source: require("../assets/pdfs/pages/page-2.png") },
-  { page: 3, source: require("../assets/pdfs/pages/page-3.png") },
-];
+import { getPartitura } from "../data/partiturasManifest";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PAGE_ASPECT_RATIO = 612 / 792;
@@ -36,135 +22,25 @@ export default function PartituraScreen() {
   const params = useLocalSearchParams<{
     hinoNumero?: string;
     hinoTitulo?: string;
+    book?: string;
   }>();
 
   const numero = params.hinoNumero ?? "";
   const titulo = params.hinoTitulo ?? "Partitura";
+  const book = params.book ?? "hinos";
 
-  // Carrega o asset do PDF real
-  const [assets, error] = useAssets([SAMPLE_PDF]);
-  const pdfAsset = assets?.[0];
-  const pdfUri = pdfAsset?.localUri || pdfAsset?.uri;
+  const partitura = getPartitura(book, numero);
 
-  // No iOS, o WebKit possui renderizador vetorial nativo de PDF (PDFKit).
-  // Abrindo o arquivo diretamente via URI local, a qualidade do zoom é vetorial (infinita).
-  const isApple = Platform.OS === "ios";
-
-  const renderViewer = () => {
-    if (error) {
-      return (
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>
-            Erro ao carregar o arquivo PDF: {error.message}
-          </Text>
-        </View>
-      );
-    }
-
-    if (!pdfUri) {
-      return (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={THEME_COLORS.cream} />
-          <Text style={styles.loadingText}>Abrindo documento PDF...</Text>
-        </View>
-      );
-    }
-
-    if (isApple) {
-      return (
-        <WebView
-          source={{ uri: pdfUri }}
-          originWhitelist={["*"]}
-          allowingReadAccessToURL={pdfUri}
-          allowFileAccess
-          allowUniversalAccessFromFileURLs
-          scalesPageToFit
-          bounces={false}
-          scrollEnabled
-          style={[styles.webview, { backgroundColor: THEME_COLORS.bg }]}
-          containerStyle={{ backgroundColor: THEME_COLORS.bg }}
-          injectedJavaScript={`
-            (function() {
-              function applyBg() {
-                try {
-                  document.documentElement.style.setProperty('background', '${THEME_COLORS.bg}', 'important');
-                  document.documentElement.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
-                  if (document.body) {
-                    document.body.style.setProperty('background', '${THEME_COLORS.bg}', 'important');
-                    document.body.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
-                  }
-                  var style = document.getElementById('custom-pdf-bg-style');
-                  if (!style) {
-                    style = document.createElement('style');
-                    style.id = 'custom-pdf-bg-style';
-                    style.innerHTML = 'html, body { background: ${THEME_COLORS.bg} !important; background-color: ${THEME_COLORS.bg} !important; }';
-                    (document.head || document.documentElement).appendChild(style);
-                  }
-                } catch (e) {}
-              }
-              applyBg();
-              window.addEventListener('DOMContentLoaded', applyBg);
-              window.addEventListener('load', applyBg);
-              setTimeout(applyBg, 50);
-              setTimeout(applyBg, 300);
-              setTimeout(applyBg, 800);
-            })();
-            true;
-          `}
-          injectedJavaScriptBeforeContentLoaded={`
-            (function() {
-              try {
-                document.documentElement.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
-                if (document.body) {
-                  document.body.style.setProperty('background-color', '${THEME_COLORS.bg}', 'important');
-                }
-              } catch (e) {}
-            })();
-            true;
-          `}
-          startInLoadingState
-          renderLoading={() => (
-            <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color={THEME_COLORS.cream} />
-              <Text style={styles.loadingText}>Renderizando partitura em PDF...</Text>
-            </View>
-          )}
-        />
-      );
-    }
-
-    // Android / Web: visualizador contínuo com suporte a zoom nativo
-    const cardWidth = Math.min(SCREEN_WIDTH - 24, 700);
-    const cardHeight = Math.round(cardWidth / PAGE_ASPECT_RATIO);
-
-    return (
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        maximumZoomScale={3}
-        minimumZoomScale={1}
-        showsVerticalScrollIndicator
-      >
-        {FALLBACK_PAGES.map((item) => (
-          <View
-            key={item.page}
-            style={[styles.pageCard, { width: cardWidth, height: cardHeight }]}
-          >
-            <Image
-              source={item.source}
-              style={styles.pageImage}
-              resizeMode="contain"
-            />
-            <View style={styles.pageBadge}>
-              <Text style={styles.pageBadgeText}>
-                Página {item.page} de {FALLBACK_PAGES.length}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    );
+  const getBookLabel = () => {
+    const b = book.toLowerCase();
+    if (b.includes("cantico")) return "Cântico";
+    if (b.includes("suplemento")) return "Suplemento";
+    return "Hino";
   };
+
+  const bookLabel = getBookLabel();
+  const cardWidth = Math.min(SCREEN_WIDTH - 24, 720);
+  const cardHeight = Math.round(cardWidth / PAGE_ASPECT_RATIO);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -206,7 +82,7 @@ export default function PartituraScreen() {
 
         <View style={styles.titleArea}>
           <Text style={styles.navTitle} numberOfLines={1}>
-            {numero ? `Partitura — Hino ${numero}` : "Partitura"}
+            {numero ? `Partitura — ${bookLabel} ${numero}` : "Partitura"}
           </Text>
           {titulo && titulo !== "Partitura" && (
             <Text style={styles.navSubtitle} numberOfLines={1}>
@@ -215,14 +91,71 @@ export default function PartituraScreen() {
           )}
         </View>
 
-        {/* Formato indicator */}
-        <View style={styles.formatBadge}>
-          <Text style={styles.formatText}>PDF</Text>
-        </View>
+        {/* Page Count Badge */}
+        {partitura ? (
+          <View style={styles.formatBadge}>
+            <Text style={styles.formatText}>
+              {partitura.pageCount} {partitura.pageCount === 1 ? "pág" : "págs"}
+            </Text>
+          </View>
+        ) : (
+          <View style={{ width: 38 }} />
+        )}
       </View>
 
       {/* Viewer Area */}
-      <View style={styles.viewerContainer}>{renderViewer()}</View>
+      <View style={styles.viewerContainer}>
+        {partitura ? (
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            maximumZoomScale={4}
+            minimumZoomScale={1}
+            showsVerticalScrollIndicator
+            bounces={false}
+          >
+            {partitura.pages.map((source, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.pageCard,
+                  { width: cardWidth, height: cardHeight },
+                ]}
+              >
+                <Image
+                  source={source}
+                  style={styles.pageImage}
+                  resizeMode="contain"
+                />
+                {partitura.pageCount > 1 && (
+                  <View style={styles.pageBadge}>
+                    <Text style={styles.pageBadgeText}>
+                      Página {index + 1} de {partitura.pageCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>♫</Text>
+            <Text style={styles.emptyTitle}>Partitura não disponível</Text>
+            <Text style={styles.emptySubtitle}>
+              Ainda não há partitura cadastrada para este {bookLabel.toLowerCase()} no hinário.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.emptyButton,
+                pressed && styles.btnPressed,
+              ]}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.emptyButtonText}>Voltar</Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
@@ -274,7 +207,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   formatBadge: {
-    minWidth: 38,
+    minWidth: 46,
     height: 28,
     borderRadius: 14,
     backgroundColor: THEME_COLORS.surface,
@@ -290,28 +223,6 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.cream,
   },
   viewerContainer: {
-    flex: 1,
-    backgroundColor: THEME_COLORS.bg,
-  },
-  centerContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    gap: 12,
-  },
-  loadingText: {
-    fontFamily: THEME_FONTS.inter.medium,
-    fontSize: 14,
-    color: THEME_COLORS.muted,
-  },
-  errorText: {
-    fontFamily: THEME_FONTS.inter.medium,
-    fontSize: 14,
-    color: "#f87171",
-    textAlign: "center",
-  },
-  webview: {
     flex: 1,
     backgroundColor: THEME_COLORS.bg,
   },
@@ -343,16 +254,56 @@ const styles = StyleSheet.create({
   },
   pageBadge: {
     position: "absolute",
-    bottom: 6,
-    right: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
-    paddingVertical: 2,
+    bottom: 8,
+    right: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 6,
   },
   pageBadgeText: {
     fontFamily: THEME_FONTS.inter.medium,
-    fontSize: 10,
+    fontSize: 11,
     color: "#ffffff",
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+    gap: 12,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    color: THEME_COLORS.muted,
+    marginBottom: 8,
+  },
+  emptyTitle: {
+    fontFamily: THEME_FONTS.fraunces.semiBold,
+    fontSize: 18,
+    color: THEME_COLORS.cream,
+    textAlign: "center",
+  },
+  emptySubtitle: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 14,
+    color: THEME_COLORS.muted,
+    textAlign: "center",
+    lineHeight: 20,
+    maxWidth: 280,
+  },
+  emptyButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    backgroundColor: THEME_COLORS.surface,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
+  },
+  emptyButtonText: {
+    fontFamily: THEME_FONTS.inter.semiBold,
+    fontSize: 14,
+    color: THEME_COLORS.cream,
   },
 });
