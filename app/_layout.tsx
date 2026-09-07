@@ -60,6 +60,14 @@ export default function RootLayout() {
             gestureResponseDistance: { start: 0, end: 32 },
           }}
         />
+        <Stack.Screen
+          name="partitura"
+          options={{
+            presentation: 'card',
+            animation: 'slide_from_right',
+            gestureEnabled: true,
+          }}
+        />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
     </>

@@ -1,4 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import * as Linking from "expo-linking";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   GestureResponderEvent,
@@ -9,25 +17,28 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import Svg, { Path } from 'react-native-svg';
-import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
-import { MOCK_HINOS } from '../../data/mockHinos';
-import { INITIAL_BOOKS } from '../../data/mockHinario';
-import { BookKey } from '../../types/hinario';
-import { Hino } from '../../types/hino';
-import { Toast } from '../../components/ui/Toast';
-import { HymnOptionsSheet } from '../../components/hinario/HymnOptionsSheet';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
+import { HymnOptionsSheet } from "../../components/hinario/HymnOptionsSheet";
+import { Toast } from "../../components/ui/Toast";
+import { THEME_COLORS, THEME_FONTS } from "../../constants/theme";
+import { INITIAL_BOOKS } from "../../data/mockHinario";
+import { MOCK_HINOS } from "../../data/mockHinos";
+import { BookKey } from "../../types/hinario";
+import { Hino } from "../../types/hino";
 
-import { getHino, findHinoAnyBook, getAllHymnsList } from '../../data/hinosRepository';
-import { normalizeSearchText } from '../../utils/textNormalize';
+import {
+  findHinoAnyBook,
+  getAllHymnsList,
+  getHino,
+} from "../../data/hinosRepository";
 import {
   isFavorite as checkIsFavorite,
-  toggleFavorite,
   subscribeFavorites,
-} from '../../services/favoritesService';
+  toggleFavorite,
+} from "../../services/favoritesService";
+import { normalizeSearchText } from "../../utils/textNormalize";
 
 const EDGE_BACK_ZONE_WIDTH = 32; // Limite em pontos da extremidade esquerda reservado exclusivamente para o gesto nativo de voltar do iOS
 const HORIZONTAL_SWIPE_MIN_DISTANCE = 40; // Distância mínima para mudar de hino
@@ -35,7 +46,7 @@ const HORIZONTAL_SWIPE_MIN_DISTANCE = 40; // Distância mínima para mudar de hi
 function resolveHino(
   id?: string,
   bookParam?: string,
-  titleParam?: string
+  titleParam?: string,
 ): Hino | null {
   if (!id) return null;
 
@@ -55,15 +66,13 @@ function resolveHino(
   if (titleParam) {
     const all = getAllHymnsList();
     const titleNorm = normalizeSearchText(titleParam);
-    const match = all.find(
-      (h) => normalizeSearchText(h.titulo) === titleNorm
-    );
+    const match = all.find((h) => normalizeSearchText(h.titulo) === titleNorm);
     if (match) return match;
   }
 
   // 4. Check MOCK_HINOS as fallback
   const mockFound = MOCK_HINOS.find(
-    (h) => h.id === id || String(h.numero) === id
+    (h) => h.id === id || String(h.numero) === id,
   );
   if (mockFound) {
     return mockFound;
@@ -81,23 +90,23 @@ export default function HinoDetailScreen() {
   const router = useRouter();
 
   const id =
-    typeof params.id === 'string'
+    typeof params.id === "string"
       ? params.id
       : Array.isArray(params.id)
-      ? params.id[0]
-      : '';
+        ? params.id[0]
+        : "";
   const book =
-    typeof params.book === 'string'
+    typeof params.book === "string"
       ? params.book
       : Array.isArray(params.book)
-      ? params.book[0]
-      : undefined;
+        ? params.book[0]
+        : undefined;
   const title =
-    typeof params.title === 'string'
+    typeof params.title === "string"
       ? params.title
       : Array.isArray(params.title)
-      ? params.title[0]
-      : undefined;
+        ? params.title[0]
+        : undefined;
 
   const [hino, setHino] = useState<Hino | null>(null);
   const [fontSize, setFontSize] = useState<number>(18);
@@ -111,10 +120,10 @@ export default function HinoDetailScreen() {
     }
     if (hino?.categoria) {
       const lower = hino.categoria.toLowerCase();
-      if (lower.includes('cantico')) return 'canticos';
-      if (lower.includes('supl')) return 'suplemento';
+      if (lower.includes("cantico")) return "canticos";
+      if (lower.includes("supl")) return "suplemento";
     }
-    return 'hinos';
+    return "hinos";
   }, [book, hino?.categoria]);
 
   const goToNextHymn = useCallback(() => {
@@ -122,7 +131,7 @@ export default function HinoDetailScreen() {
     const targetNum = hino.numero + 1;
     const targetHino = getHino(currentBookKey, targetNum);
     if (!targetHino) {
-      Toast.show('Você já está no último hino deste hinário');
+      Toast.show("Você já está no último hino deste hinário");
       return;
     }
     setHino(targetHino);
@@ -138,12 +147,12 @@ export default function HinoDetailScreen() {
     if (!hino || hino.numero <= 0) return;
     const targetNum = hino.numero - 1;
     if (targetNum < 1) {
-      Toast.show('Você já está no primeiro hino deste hinário');
+      Toast.show("Você já está no primeiro hino deste hinário");
       return;
     }
     const targetHino = getHino(currentBookKey, targetNum);
     if (!targetHino) {
-      Toast.show('Você já está no primeiro hino deste hinário');
+      Toast.show("Você já está no primeiro hino deste hinário");
       return;
     }
     setHino(targetHino);
@@ -158,7 +167,10 @@ export default function HinoDetailScreen() {
   const touchStartXRef = useRef<number>(0);
 
   const getStartX = useCallback(
-    (evt: GestureResponderEvent, gestureState: PanResponderGestureState): number => {
+    (
+      evt: GestureResponderEvent,
+      gestureState: PanResponderGestureState,
+    ): number => {
       if (touchStartXRef.current > 0) {
         return touchStartXRef.current;
       }
@@ -170,7 +182,7 @@ export default function HinoDetailScreen() {
       }
       return evt.nativeEvent.pageX ?? 0;
     },
-    []
+    [],
   );
 
   const panResponder = useMemo(
@@ -237,7 +249,10 @@ export default function HinoDetailScreen() {
           if (gestureState.dx > 0 && (isSignificantDistance || isFlick)) {
             // Arrastar da esquerda para a direita no corpo da tela: hino anterior
             goToPreviousHymn();
-          } else if (gestureState.dx < 0 && (isSignificantDistance || isFlick)) {
+          } else if (
+            gestureState.dx < 0 &&
+            (isSignificantDistance || isFlick)
+          ) {
             // Arrastar da direita para a esquerda: próximo hino
             goToNextHymn();
           }
@@ -249,7 +264,7 @@ export default function HinoDetailScreen() {
           touchStartXRef.current = 0;
         },
       }),
-    [getStartX, goToPreviousHymn, goToNextHymn]
+    [getStartX, goToPreviousHymn, goToNextHymn],
   );
 
   // Sincroniza o status de favorito com o armazenamento local
@@ -266,7 +281,9 @@ export default function HinoDetailScreen() {
     const unsubscribe = subscribeFavorites((favList) => {
       if (!isMounted || !hino || hino.numero <= 0) return;
       const isFav = favList.some(
-        (f) => f.bookKey === currentBookKey && String(f.number) === String(hino.numero)
+        (f) =>
+          f.bookKey === currentBookKey &&
+          String(f.number) === String(hino.numero),
       );
       setIsFavorite(isFav);
     });
@@ -279,7 +296,7 @@ export default function HinoDetailScreen() {
 
   const handleToggleFavorite = async () => {
     if (!hino || hino.numero <= 0) return;
-    const bookName = INITIAL_BOOKS[currentBookKey]?.name || 'Hinos';
+    const bookName = INITIAL_BOOKS[currentBookKey]?.name || "Hinos";
     const result = await toggleFavorite({
       number: String(hino.numero),
       title: hino.titulo,
@@ -290,18 +307,30 @@ export default function HinoDetailScreen() {
   };
 
   const handleOpenSheetMusic = () => {
-    Alert.alert(
-      'Partitura',
-      `A partitura do hino ${hino?.numero} - "${hino?.titulo}" estará disponível para download e visualização em breve!`,
-      [{ text: 'OK' }]
-    );
+    router.push({
+      pathname: "/partitura" as any,
+      params: {
+        hinoNumero: String(hino?.numero ?? ""),
+        hinoTitulo: hino?.titulo ?? "",
+      },
+    });
   };
 
   const handleOpenIGCGMusic = () => {
     Alert.alert(
-      'IGCGMusic',
-      `Ouvir "${hino?.titulo}" no app IGCGMusic. Redirecionamento para a plataforma de música da igreja.`,
-      [{ text: 'Ouvir Agora', onPress: () => {} }, { text: 'Fechar', style: 'cancel' }]
+      "IGCGMusic",
+      `Ouvir "${hino?.titulo}" no app IGCGMusic. Você será redirecionado para a plataforma.`,
+      [
+        {
+          text: "Ouvir Agora",
+          onPress: () => {
+            Linking.openURL("https://beta.igcgmusic.com.br").catch((err) => {
+              console.error("Erro ao abrir IGCGMusic:", err);
+            });
+          },
+        },
+        { text: "Fechar", style: "cancel" },
+      ],
     );
   };
 
@@ -317,11 +346,11 @@ export default function HinoDetailScreen() {
 
     const found = resolveHino(id, book, title);
     if (!found) {
-      Toast.show('Hino não encontrado');
+      Toast.show("Hino não encontrado");
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace('/');
+        router.replace("/");
       }
     } else {
       setHino(found);
@@ -343,7 +372,7 @@ export default function HinoDetailScreen() {
       <Stack.Screen
         options={{
           headerShown: false,
-          animation: 'none',
+          animation: "none",
           gestureEnabled: true,
           fullScreenGestureEnabled: false,
           gestureResponseDistance: { start: 0, end: EDGE_BACK_ZONE_WIDTH },
@@ -369,7 +398,7 @@ export default function HinoDetailScreen() {
               if (router.canGoBack()) {
                 router.back();
               } else {
-                router.replace('/');
+                router.replace("/");
               }
             }}
             style={({ pressed }) => [
@@ -389,7 +418,7 @@ export default function HinoDetailScreen() {
           </Pressable>
 
           <Text style={styles.navTitle} numberOfLines={1}>
-            {hino.numero > 0 ? `Hino ${hino.numero}` : hino.categoria || 'Hino'}
+            {hino.numero > 0 ? `Hino ${hino.numero}` : hino.categoria || "Hino"}
           </Text>
 
           <Pressable
@@ -470,13 +499,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center',
+    width: "100%",
+    alignSelf: "center",
   },
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   loadingText: {
@@ -485,9 +514,9 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.muted,
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 16,
@@ -499,8 +528,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.surface,
     borderWidth: 1,
     borderColor: THEME_COLORS.line,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   btnPressed: {
     backgroundColor: THEME_COLORS.surfaceRaised,
@@ -510,7 +539,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: THEME_COLORS.cream,
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     marginHorizontal: 8,
   },
   optionsBtn: {
@@ -520,8 +549,8 @@ const styles = StyleSheet.create({
     backgroundColor: THEME_COLORS.surface,
     borderWidth: 1,
     borderColor: THEME_COLORS.line,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollView: {
     flex: 1,
@@ -536,7 +565,7 @@ const styles = StyleSheet.create({
   categoryBadge: {
     fontFamily: THEME_FONTS.inter.semiBold,
     fontSize: 12,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 1.2,
     color: THEME_COLORS.goldSoft,
     marginBottom: 6,
@@ -577,14 +606,14 @@ const styles = StyleSheet.create({
   chorusLabel: {
     fontFamily: THEME_FONTS.inter.bold,
     fontSize: 12,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 1,
     color: THEME_COLORS.goldSoft,
     marginBottom: 6,
   },
   chorusText: {
     fontFamily: THEME_FONTS.inter.medium,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     color: THEME_COLORS.cream,
   },
 });
