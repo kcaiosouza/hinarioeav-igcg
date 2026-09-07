@@ -10,10 +10,17 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
 
+export interface ToastSuggestion {
+  title: string;
+  actionLabel: string;
+  onAction: () => void;
+}
+
 export interface ToastNoticeProps {
   visible: boolean;
   bookName: string;
   message: string;
+  suggestion?: ToastSuggestion;
   onClose: () => void;
   duration?: number;
 }
@@ -22,9 +29,11 @@ export function ToastNotice({
   visible,
   bookName,
   message,
+  suggestion,
   onClose,
-  duration = 4000,
+  duration,
 }: ToastNoticeProps) {
+  const effectiveDuration = duration ?? (suggestion ? 7000 : 4000);
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-12)).current;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -50,6 +59,13 @@ export function ToastNotice({
     });
   };
 
+  const handleActionPress = () => {
+    if (suggestion) {
+      handleDismiss();
+      suggestion.onAction();
+    }
+  };
+
   useEffect(() => {
     if (visible) {
       translateY.setValue(-12);
@@ -69,7 +85,7 @@ export function ToastNotice({
 
       timerRef.current = setTimeout(() => {
         handleDismiss();
-      }, duration);
+      }, effectiveDuration);
 
       return () => {
         if (timerRef.current) {
@@ -81,7 +97,7 @@ export function ToastNotice({
       opacity.setValue(0);
       translateY.setValue(-12);
     }
-  }, [visible, message, duration]);
+  }, [visible, message, suggestion, effectiveDuration]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -146,6 +162,23 @@ export function ToastNotice({
           </Pressable>
         </View>
         <Text style={styles.messageText}>{message}</Text>
+
+        {suggestion && (
+          <View style={styles.suggestionBox}>
+            <Text style={styles.suggestionTitle}>{suggestion.title}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={suggestion.actionLabel}
+              onPress={handleActionPress}
+              style={({ pressed }) => [
+                styles.actionBtn,
+                pressed && styles.actionBtnPressed,
+              ]}
+            >
+              <Text style={styles.actionBtnText}>{suggestion.actionLabel}</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </Animated.View>
   );
@@ -155,8 +188,8 @@ const styles = StyleSheet.create({
   toastWrapper: {
     position: 'absolute',
     top: 56,
-    left: 0,
-    right: 0,
+    left: 20,
+    right: 20,
     zIndex: 999,
     elevation: 8,
     shadowColor: '#000',
@@ -197,5 +230,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: THEME_COLORS.cream,
     lineHeight: 20,
+  },
+  suggestionBox: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: THEME_COLORS.line,
+    gap: 8,
+  },
+  suggestionTitle: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 13,
+    color: THEME_COLORS.goldSoft,
+    lineHeight: 18,
+  },
+  actionBtn: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: THEME_COLORS.goldSoft,
+    borderRadius: 100,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  actionBtnPressed: {
+    backgroundColor: 'rgba(218, 215, 205, 0.12)',
+  },
+  actionBtnText: {
+    fontFamily: THEME_FONTS.inter.semiBold,
+    fontSize: 12,
+    color: THEME_COLORS.goldSoft,
   },
 });
