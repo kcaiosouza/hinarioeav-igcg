@@ -23,6 +23,11 @@ import { HymnOptionsSheet } from '../../components/hinario/HymnOptionsSheet';
 
 import { getHino, findHinoAnyBook, getAllHymnsList } from '../../data/hinosRepository';
 import { normalizeSearchText } from '../../utils/textNormalize';
+import {
+  isFavorite as checkIsFavorite,
+  toggleFavorite,
+  subscribeFavorites,
+} from '../../services/favoritesService';
 
 const EDGE_BACK_ZONE_WIDTH = 32; // Limite em pontos da extremidade esquerda reservado exclusivamente para o gesto nativo de voltar do iOS
 const HORIZONTAL_SWIPE_MIN_DISTANCE = 40; // Distância mínima para mudar de hino
@@ -247,12 +252,44 @@ export default function HinoDetailScreen() {
     [getStartX, goToPreviousHymn, goToNextHymn]
   );
 
-  const handleToggleFavorite = () => {
-    setIsFavorite((prev) => {
-      const next = !prev;
-      Toast.show(next ? 'Hino adicionado aos favoritos!' : 'Hino removido dos favoritos');
-      return next;
+  // Sincroniza o status de favorito com o armazenamento local
+  useEffect(() => {
+    let isMounted = true;
+    if (hino && hino.numero > 0) {
+      checkIsFavorite(currentBookKey, hino.numero).then((fav) => {
+        if (isMounted) {
+          setIsFavorite(fav);
+        }
+      });
+    }
+
+    const unsubscribe = subscribeFavorites((favList) => {
+      if (!isMounted || !hino || hino.numero <= 0) return;
+      const isFav = favList.some(
+        (f) => f.bookKey === currentBookKey && String(f.number) === String(hino.numero)
+      );
+      setIsFavorite(isFav);
     });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [hino, currentBookKey]);
+
+  const handleToggleFavorite = async () => {
+    if (!hino || hino.numero <= 0) return;
+    const bookName = INITIAL_BOOKS[currentBookKey]?.name || 'Hinos';
+    const result = await toggleFavorite({
+      number: String(hino.numero),
+      title: hino.titulo,
+      bookKey: currentBookKey,
+      bookName,
+    });
+    setIsFavorite(result.isFav);
+    Toast.show(
+      result.isFav ? 'Hino adicionado aos favoritos!' : 'Hino removido dos favoritos'
+    );
   };
 
   const handleOpenSheetMusic = () => {
