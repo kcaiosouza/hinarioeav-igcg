@@ -115,14 +115,12 @@ export default function HinoDetailScreen() {
       Toast.show('Você já está no último hino deste hinário');
       return;
     }
+    setHino(targetHino);
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-    router.replace({
-      pathname: '/hino/[id]',
-      params: {
-        id: String(targetNum),
-        book: currentBookKey,
-        title: targetHino.titulo,
-      },
+    router.setParams({
+      id: String(targetNum),
+      book: currentBookKey,
+      title: targetHino.titulo,
     });
   }, [hino, currentBookKey, router]);
 
@@ -138,14 +136,12 @@ export default function HinoDetailScreen() {
       Toast.show('Você já está no primeiro hino deste hinário');
       return;
     }
+    setHino(targetHino);
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-    router.replace({
-      pathname: '/hino/[id]',
-      params: {
-        id: String(targetNum),
-        book: currentBookKey,
-        title: targetHino.titulo,
-      },
+    router.setParams({
+      id: String(targetNum),
+      book: currentBookKey,
+      title: targetHino.titulo,
     });
   }, [hino, currentBookKey, router]);
 
@@ -153,19 +149,36 @@ export default function HinoDetailScreen() {
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_, gestureState) => {
+        onMoveShouldSetPanResponder: (evt, gestureState) => {
+          // Se o gesto começar na extremidade esquerda (<= 40px), libera para o gesto nativo de voltar do iOS
+          const startX = gestureState.x0 ?? evt.nativeEvent.pageX ?? 0;
+          if (startX <= 40 && gestureState.dx > 0) {
+            return false;
+          }
+
           return (
-            Math.abs(gestureState.dx) > 25 &&
+            Math.abs(gestureState.dx) > 30 &&
             Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5
           );
         },
-        onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+        onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+          // Se o gesto começar na extremidade esquerda (<= 40px), libera para o gesto nativo de voltar do iOS
+          const startX = gestureState.x0 ?? evt.nativeEvent.pageX ?? 0;
+          if (startX <= 40 && gestureState.dx > 0) {
+            return false;
+          }
+
           return (
-            Math.abs(gestureState.dx) > 25 &&
+            Math.abs(gestureState.dx) > 30 &&
             Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5
           );
         },
-        onPanResponderRelease: (_, gestureState) => {
+        onPanResponderRelease: (evt, gestureState) => {
+          const startX = gestureState.x0 ?? evt.nativeEvent.pageX ?? 0;
+          if (startX <= 40 && gestureState.dx > 0) {
+            return;
+          }
+
           if (gestureState.dx > 50) {
             // Arrastar da esquerda para direita: volta um hino
             goToPreviousHymn();
@@ -232,7 +245,7 @@ export default function HinoDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, gestureEnabled: true, animation: 'none' }} />
       <HymnOptionsSheet
         visible={isOptionsOpen}
         onClose={() => setIsOptionsOpen(false)}
