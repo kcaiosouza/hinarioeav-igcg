@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  GestureResponderEvent,
   PanResponder,
+  PanResponderGestureState,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,6 +23,9 @@ import { HymnOptionsSheet } from '../../components/hinario/HymnOptionsSheet';
 
 import { getHino, findHinoAnyBook, getAllHymnsList } from '../../data/hinosRepository';
 import { normalizeSearchText } from '../../utils/textNormalize';
+
+const EDGE_BACK_ZONE_WIDTH = 32; // Limite em pontos da extremidade esquerda reservado exclusivamente para o gesto nativo de voltar do iOS
+const HORIZONTAL_SWIPE_MIN_DISTANCE = 40; // Distância mínima para mudar de hino
 
 function resolveHino(
   id?: string,
@@ -145,50 +150,101 @@ export default function HinoDetailScreen() {
     });
   }, [hino, currentBookKey, router]);
 
+  const touchStartXRef = useRef<number>(0);
+
+  const getStartX = useCallback(
+    (evt: GestureResponderEvent, gestureState: PanResponderGestureState): number => {
+      if (touchStartXRef.current > 0) {
+        return touchStartXRef.current;
+      }
+      if (gestureState.x0 > 0) {
+        return gestureState.x0;
+      }
+      if (gestureState.moveX > 0) {
+        return gestureState.moveX - gestureState.dx;
+      }
+      return evt.nativeEvent.pageX ?? 0;
+    },
+    []
+  );
+
   const panResponder = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
+        onStartShouldSetPanResponderCapture: (evt) => {
+          touchStartXRef.current = evt.nativeEvent.pageX;
+          return false;
+        },
         onMoveShouldSetPanResponder: (evt, gestureState) => {
-          // Se o gesto começar na extremidade esquerda (<= 40px), libera para o gesto nativo de voltar do iOS
-          const startX = gestureState.x0 ?? evt.nativeEvent.pageX ?? 0;
-          if (startX <= 40 && gestureState.dx > 0) {
+          if (gestureState.numberActiveTouches > 1) {
             return false;
           }
 
+          const startX = getStartX(evt, gestureState);
+
+          // Se o gesto iniciou na extremidade esquerda (<= 32px) e o usuário está arrastando para a direita,
+          // LIBERA para o gesto nativo de voltar do iOS (interactivePopGestureRecognizer)
+          if (startX <= EDGE_BACK_ZONE_WIDTH && gestureState.dx > 0) {
+            return false;
+          }
+
+          // Arrasto predominantemente horizontal
           return (
-            Math.abs(gestureState.dx) > 30 &&
-            Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5
+            Math.abs(gestureState.dx) > 20 &&
+            Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.3
           );
         },
         onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-          // Se o gesto começar na extremidade esquerda (<= 40px), libera para o gesto nativo de voltar do iOS
-          const startX = gestureState.x0 ?? evt.nativeEvent.pageX ?? 0;
-          if (startX <= 40 && gestureState.dx > 0) {
+          if (gestureState.numberActiveTouches > 1) {
+            return false;
+          }
+
+          const startX = getStartX(evt, gestureState);
+
+          // Se o gesto iniciou na extremidade esquerda (<= 32px) e o usuário está arrastando para a direita,
+          // NÃO captura: permite que o gesto nativo do iOS faça o pop da tela
+          if (startX <= EDGE_BACK_ZONE_WIDTH && gestureState.dx > 0) {
             return false;
           }
 
           return (
-            Math.abs(gestureState.dx) > 30 &&
-            Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5
+            Math.abs(gestureState.dx) > 20 &&
+            Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.3
           );
         },
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
         onPanResponderRelease: (evt, gestureState) => {
-          const startX = gestureState.x0 ?? evt.nativeEvent.pageX ?? 0;
-          if (startX <= 40 && gestureState.dx > 0) {
+          const startX = getStartX(evt, gestureState);
+          touchStartXRef.current = 0;
+
+          // Se iniciou na extremidade e foi para a direita, o iOS já tratou o voltar da tela
+          if (startX <= EDGE_BACK_ZONE_WIDTH && gestureState.dx > 0) {
             return;
           }
 
-          if (gestureState.dx > 50) {
-            // Arrastar da esquerda para direita: volta um hino
+          const isSignificantDistance =
+            Math.abs(gestureState.dx) >= HORIZONTAL_SWIPE_MIN_DISTANCE;
+          const isFlick =
+            Math.abs(gestureState.dx) >= 20 && Math.abs(gestureState.vx) >= 0.3;
+
+          if (gestureState.dx > 0 && (isSignificantDistance || isFlick)) {
+            // Arrastar da esquerda para a direita no corpo da tela: hino anterior
             goToPreviousHymn();
-          } else if (gestureState.dx < -50) {
-            // Arrastar da direita para esquerda: avança um hino
+          } else if (gestureState.dx < 0 && (isSignificantDistance || isFlick)) {
+            // Arrastar da direita para a esquerda: próximo hino
             goToNextHymn();
           }
         },
+        onPanResponderTerminate: () => {
+          touchStartXRef.current = 0;
+        },
+        onPanResponderReject: () => {
+          touchStartXRef.current = 0;
+        },
       }),
-    [goToPreviousHymn, goToNextHymn]
+    [getStartX, goToPreviousHymn, goToNextHymn]
   );
 
   const handleToggleFavorite = () => {
@@ -220,6 +276,11 @@ export default function HinoDetailScreen() {
   }, [id]);
 
   useEffect(() => {
+    // Se o hino atual em memória já é o hino requisitado, não recarrega
+    if (hino && String(hino.numero) === id) {
+      return;
+    }
+
     const found = resolveHino(id, book, title);
     if (!found) {
       Toast.show('Hino não encontrado');
@@ -231,7 +292,7 @@ export default function HinoDetailScreen() {
     } else {
       setHino(found);
     }
-  }, [id, book, title, router]);
+  }, [id, book, title, router, hino]);
 
   if (!hino) {
     return (
@@ -245,7 +306,15 @@ export default function HinoDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ headerShown: false, gestureEnabled: true, animation: 'none' }} />
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          animation: 'none',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: false,
+          gestureResponseDistance: { start: 0, end: EDGE_BACK_ZONE_WIDTH },
+        }}
+      />
       <HymnOptionsSheet
         visible={isOptionsOpen}
         onClose={() => setIsOptionsOpen(false)}
