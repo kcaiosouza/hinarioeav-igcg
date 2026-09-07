@@ -22,6 +22,7 @@ export interface HymnOptionsSheetProps {
   onToggleFavorite: () => void;
   onOpenSheetMusic: () => void;
   onOpenIGCGMusic: () => void;
+  hasSheetMusic?: boolean;
 }
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -35,6 +36,7 @@ export function HymnOptionsSheet({
   onToggleFavorite,
   onOpenSheetMusic,
   onOpenIGCGMusic,
+  hasSheetMusic,
 }: HymnOptionsSheetProps) {
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(visible);
@@ -272,7 +274,11 @@ export function HymnOptionsSheet({
             {/* 3. Sheet Music Action */}
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Ver partitura"
+              accessibilityLabel={
+                hasSheetMusic === false
+                  ? "Partitura não disponível"
+                  : "Ver partitura"
+              }
               onPress={() => handleClose(onOpenSheetMusic)}
               style={({ pressed }) => [
                 styles.optionButton,
@@ -284,7 +290,9 @@ export function HymnOptionsSheet({
                 <View>
                   <Text style={styles.optionLabel}>Ver Partitura</Text>
                   <Text style={styles.optionSublabel}>
-                    O que quem toca quer ver
+                    {hasSheetMusic === false
+                      ? "Partitura ainda não adicionada"
+                      : "O que quem toca quer ver"}
                   </Text>
                 </View>
               </View>

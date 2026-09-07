@@ -63,6 +63,7 @@ export default function PartituraScreen() {
     const b = book.toLowerCase();
     if (b.includes("cantico")) return "Cântico";
     if (b.includes("suplemento")) return "Suplemento";
+    if (b.includes("novo")) return "Hinário Novo";
     return "Hino";
   };
 
@@ -171,14 +172,20 @@ export default function PartituraScreen() {
             <Text style={styles.emptyIcon}>♫</Text>
             <Text style={styles.emptyTitle}>Partitura não disponível</Text>
             <Text style={styles.emptySubtitle}>
-              Ainda não há partitura cadastrada para este {bookLabel.toLowerCase()} no hinário.
+              Partitura ainda não adicionada para este hino...
             </Text>
             <Pressable
               style={({ pressed }) => [
                 styles.emptyButton,
                 pressed && styles.btnPressed,
               ]}
-              onPress={() => router.back()}
+              onPress={() => {
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/");
+                }
+              }}
             >
               <Text style={styles.emptyButtonText}>Voltar</Text>
             </Pressable>
@@ -186,51 +193,55 @@ export default function PartituraScreen() {
         )}
 
         {/* Floating Navigation Buttons */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Hino anterior"
-          disabled={!canGoPrev}
-          onPress={handlePrevHymn}
-          style={({ pressed }) => [
-            styles.floatingNavBtn,
-            styles.floatingBtnLeft,
-            !canGoPrev && styles.btnDisabled,
-            pressed && canGoPrev && styles.btnPressed,
-          ]}
-        >
-          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M15 19l-7-7 7-7"
-              stroke={canGoPrev ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </Pressable>
+        {partitura && (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Hino anterior"
+              disabled={!canGoPrev}
+              onPress={handlePrevHymn}
+              style={({ pressed }) => [
+                styles.floatingNavBtn,
+                styles.floatingBtnLeft,
+                !canGoPrev && styles.btnDisabled,
+                pressed && canGoPrev && styles.btnPressed,
+              ]}
+            >
+              <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M15 19l-7-7 7-7"
+                  stroke={canGoPrev ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </Pressable>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Próximo hino"
-          disabled={!canGoNext}
-          onPress={handleNextHymn}
-          style={({ pressed }) => [
-            styles.floatingNavBtn,
-            styles.floatingBtnRight,
-            !canGoNext && styles.btnDisabled,
-            pressed && canGoNext && styles.btnPressed,
-          ]}
-        >
-          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M9 5l7 7-7 7"
-              stroke={canGoNext ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Próximo hino"
+              disabled={!canGoNext}
+              onPress={handleNextHymn}
+              style={({ pressed }) => [
+                styles.floatingNavBtn,
+                styles.floatingBtnRight,
+                !canGoNext && styles.btnDisabled,
+                pressed && canGoNext && styles.btnPressed,
+              ]}
+            >
+              <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M9 5l7 7-7 7"
+                  stroke={canGoNext ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </Pressable>
+          </>
+        )}
       </View>
     </SafeAreaView>
   );

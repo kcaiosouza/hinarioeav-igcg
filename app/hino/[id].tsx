@@ -25,6 +25,7 @@ import { Toast } from "../../components/ui/Toast";
 import { THEME_COLORS, THEME_FONTS } from "../../constants/theme";
 import { INITIAL_BOOKS } from "../../data/mockHinario";
 import { MOCK_HINOS } from "../../data/mockHinos";
+import { hasPartitura } from "../../data/partiturasManifest";
 import { BookKey } from "../../types/hinario";
 import { Hino } from "../../types/hino";
 
@@ -307,6 +308,11 @@ export default function HinoDetailScreen() {
   };
 
   const handleOpenSheetMusic = () => {
+    if (!hasPartitura(currentBookKey, hino?.numero)) {
+      Toast.show("Partitura ainda não adicionada para este hino...");
+      return;
+    }
+
     router.push({
       pathname: "/partitura" as any,
       params: {
@@ -388,6 +394,7 @@ export default function HinoDetailScreen() {
         onToggleFavorite={handleToggleFavorite}
         onOpenSheetMusic={handleOpenSheetMusic}
         onOpenIGCGMusic={handleOpenIGCGMusic}
+        hasSheetMusic={hasPartitura(currentBookKey, hino?.numero)}
       />
       <View style={styles.container} {...panResponder.panHandlers}>
         {/* Top Navigation Bar */}

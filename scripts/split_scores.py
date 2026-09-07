@@ -202,8 +202,18 @@ export function getPartitura(book?: string | null, numero?: number | string | nu
     return SUPLEMENTO_PARTITURAS[num] ?? null;
   }
 
-  // Padrão: hinos
-  return HINOS_PARTITURAS[num] ?? null;
+  if (normalizedBook === "hinos" || normalizedBook === "hino") {
+    return HINOS_PARTITURAS[num] ?? null;
+  }
+
+  return null;
+}
+
+/**
+ * Retorna se o hino possui partitura disponível.
+ */
+export function hasPartitura(book?: string | null, numero?: number | string | null): boolean {
+  return getPartitura(book, numero) !== null;
 }
 """)
 
