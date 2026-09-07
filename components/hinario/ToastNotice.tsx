@@ -1,5 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Animated,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
 
@@ -20,9 +27,32 @@ export function ToastNotice({
 }: ToastNoticeProps) {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-12)).current;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDismiss = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: -50,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onClose();
+    });
+  };
 
   useEffect(() => {
     if (visible) {
+      translateY.setValue(-12);
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 1,
@@ -37,38 +67,53 @@ export function ToastNotice({
         }),
       ]).start();
 
-      const timer = setTimeout(() => {
+      timerRef.current = setTimeout(() => {
         handleDismiss();
       }, duration);
 
-      return () => clearTimeout(timer);
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+      };
     } else {
       opacity.setValue(0);
       translateY.setValue(-12);
     }
   }, [visible, message, duration]);
 
-  const handleDismiss = () => {
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: -10,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      onClose();
-    });
-  };
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return gestureState.dy < -5;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy <= 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy < -25 || gestureState.vy < -0.4) {
+          handleDismiss();
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            friction: 7,
+            tension: 50,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   if (!visible) return null;
 
   return (
     <Animated.View
+      {...panResponder.panHandlers}
       style={[
         styles.toastWrapper,
         {
