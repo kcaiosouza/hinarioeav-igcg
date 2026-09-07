@@ -1,7 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Keyboard,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -36,6 +37,39 @@ interface SearchItem {
   normLyrics: string;
   sections: Section[];
 }
+
+const SearchItemCard = React.memo(function SearchItemCard({
+  item,
+  onSelect,
+}: {
+  item: SearchItem;
+  onSelect: (item: SearchItem) => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${item.bookName} ${item.number} ${item.title}`}
+      onPress={() => onSelect(item)}
+      style={({ pressed }) => [
+        styles.itemCard,
+        pressed && styles.itemCardPressed,
+      ]}
+    >
+      <View style={styles.itemHeader}>
+        <Text style={styles.itemBadge}>
+          {item.bookName} · nº {item.number}
+        </Text>
+        {item.category && (
+          <Text style={styles.itemCategory}>{item.category}</Text>
+        )}
+      </View>
+      <Text style={styles.itemTitle}>{item.title}</Text>
+      {item.snippet && (
+        <Text style={styles.itemSnippet}>{item.snippet}</Text>
+      )}
+    </Pressable>
+  );
+});
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -139,13 +173,23 @@ export default function SearchScreen() {
     return scoredItems.map((entry) => entry.item);
   }, [catalog, query]);
 
-  const handleSelectHymn = (item: SearchItem) => {
-    dismissKeyboard();
-    router.push({
-      pathname: '/hino/[id]',
-      params: { id: item.number, book: item.bookKey, title: item.title },
-    });
-  };
+  const handleSelectHymn = useCallback(
+    (item: SearchItem) => {
+      dismissKeyboard();
+      router.push({
+        pathname: '/hino/[id]',
+        params: { id: item.number, book: item.bookKey, title: item.title },
+      });
+    },
+    [router]
+  );
+
+  const renderSearchItem = useCallback(
+    ({ item }: { item: SearchItem }) => (
+      <SearchItemCard item={item} onSelect={handleSelectHymn} />
+    ),
+    [handleSelectHymn]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -227,7 +271,10 @@ export default function SearchScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
-            onScrollBeginDrag={dismissKeyboard}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={7}
+            removeClippedSubviews={Platform.OS !== 'web'}
             ListEmptyComponent={
               <Pressable style={styles.emptyContainer} onPress={dismissKeyboard}>
                 <Text style={styles.emptyTitle}>Nenhum hino encontrado</Text>
@@ -239,30 +286,7 @@ export default function SearchScreen() {
             ListFooterComponent={
               <Pressable style={styles.footerSpacer} onPress={dismissKeyboard} />
             }
-            renderItem={({ item }) => (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${item.bookName} ${item.number} ${item.title}`}
-                onPress={() => handleSelectHymn(item)}
-                style={({ pressed }) => [
-                  styles.itemCard,
-                  pressed && styles.itemCardPressed,
-                ]}
-              >
-                <View style={styles.itemHeader}>
-                  <Text style={styles.itemBadge}>
-                    {item.bookName} · nº {item.number}
-                  </Text>
-                  {item.category && (
-                    <Text style={styles.itemCategory}>{item.category}</Text>
-                  )}
-                </View>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                {item.snippet && (
-                  <Text style={styles.itemSnippet}>{item.snippet}</Text>
-                )}
-              </Pressable>
-            )}
+            renderItem={renderSearchItem}
           />
         </View>
       </TouchableWithoutFeedback>
