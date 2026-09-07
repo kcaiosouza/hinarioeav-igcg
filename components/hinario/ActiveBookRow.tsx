@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
 import { BookKey } from '../../types/hinario';
 
@@ -21,6 +22,7 @@ export function ActiveBookRow({ activeKey, bookName, onRename }: ActiveBookRowPr
   }, [activeKey, bookName]);
 
   const handleCommit = () => {
+    if (!isEditing) return;
     const trimmed = editValue.trim() || 'Hinário Novo';
     onRename(trimmed);
     setEditValue(trimmed);
@@ -55,7 +57,14 @@ export function ActiveBookRow({ activeKey, bookName, onRename }: ActiveBookRowPr
               hitSlop={8}
               style={styles.renameBtn}
             >
-              <Text style={styles.pencilIcon}>✎</Text>
+              <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+                <Path
+                  d="M9.5 1.5L12.5 4.5L4.5 12.5H1.5V9.5L9.5 1.5Z"
+                  stroke={THEME_COLORS.muted}
+                  strokeWidth={1.3}
+                  strokeLinejoin="round"
+                />
+              </Svg>
             </Pressable>
           )}
         </>

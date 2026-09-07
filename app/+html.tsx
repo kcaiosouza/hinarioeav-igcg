@@ -30,10 +30,7 @@ export default function Root({ children }: { children: ReactNode }) {
 
 const responsiveBackground = `
 body {
-  background-color: #fff;
-}
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #000;
-  }
+  background: radial-gradient(120% 90% at 50% 0%, #241814 0%, #0e1712 60%);
+  margin: 0;
+  min-height: 100vh;
 }`;
