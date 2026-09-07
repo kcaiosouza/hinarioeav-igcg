@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -7,52 +7,48 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
-
-interface FavoriteItem {
-  id: string;
-  number: string;
-  title: string;
-  bookName: string;
-  bookKey: string;
-}
-
-const INITIAL_FAVORITES: FavoriteItem[] = [
-  {
-    id: '1',
-    number: '1',
-    title: 'Chuvas de Bênçãos',
-    bookName: 'Hinos',
-    bookKey: 'hinos',
-  },
-  {
-    id: '124',
-    number: '124',
-    title: 'Grande é o Senhor',
-    bookName: 'Hinos',
-    bookKey: 'hinos',
-  },
-  {
-    id: '7',
-    number: '7',
-    title: 'Deus é Amor',
-    bookName: 'Cânticos',
-    bookKey: 'canticos',
-  },
-  {
-    id: '200',
-    number: '200',
-    title: 'Vaso de Barro',
-    bookName: 'Cânticos',
-    bookKey: 'canticos',
-  },
-];
+import {
+  FavoriteItem,
+  getFavorites,
+  removeFavorite,
+  subscribeFavorites,
+} from '../services/favoritesService';
+import { Toast } from '../components/ui/Toast';
 
 export default function FavoritesScreen() {
   const router = useRouter();
-  const [favorites, setFavorites] = useState<FavoriteItem[]>(INITIAL_FAVORITES);
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      getFavorites().then((list) => {
+        if (isMounted) {
+          setFavorites(list);
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+    const unsubscribe = subscribeFavorites((list) => {
+      if (isMounted) {
+        setFavorites(list);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   const handleSelectHymn = (item: FavoriteItem) => {
     router.push({
@@ -61,8 +57,10 @@ export default function FavoritesScreen() {
     });
   };
 
-  const handleRemoveFavorite = (id: string) => {
-    setFavorites((prev) => prev.filter((f) => f.id !== id));
+  const handleRemoveFavorite = async (id: string) => {
+    const updated = await removeFavorite(id);
+    setFavorites(updated);
+    Toast.show('Hino removido dos favoritos');
   };
 
   return (
