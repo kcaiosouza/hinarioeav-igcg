@@ -6,6 +6,7 @@ import { BookKey } from '../types/hinario';
  * - Cânticos: C1, C2, ...
  * - Suplemento: S1, S2, ...
  * - Hinário Novo: Hino 1, Hino 2, ...
+ * - Diversos: D1, D2, ...
  */
 export function getHymnNavTitle(
   bookKey: BookKey | string | undefined | null,
@@ -20,6 +21,10 @@ export function getHymnNavTitle(
 
   if (normalizedKey === "novo") {
     return `Hino ${numero}`;
+  }
+
+  if (normalizedKey === "diversos" || normalizedKey === "diverso") {
+    return `D${numero}`;
   }
 
   if (normalizedKey === "canticos" || normalizedKey === "cantico") {

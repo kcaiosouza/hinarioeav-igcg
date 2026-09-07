@@ -26,6 +26,12 @@ export const INITIAL_BOOKS: Record<BookKey, BookInfo> = {
     name: 'Hinário Novo',
     data: getBookTitles('novo'),
   },
+  diversos: {
+    key: 'diversos',
+    label: 'D',
+    name: 'Diversos',
+    data: getBookTitles('diversos'),
+  },
 };
 
 export const OLD_BOOKS_ORDER: BookKey[] = ['hinos', 'canticos', 'suplemento'];

@@ -29,3 +29,9 @@ test('getHymnNavTitle com número <= 0 retorna fallbackCategoria ou Hino', () =>
   assert.equal(getHymnNavTitle('novo', -1), 'Hino');
   assert.equal(getHymnNavTitle('canticos', undefined), 'Hino');
 });
+
+test('getHymnNavTitle formata Diversos como D{numero}', () => {
+  assert.equal(getHymnNavTitle('diversos', 1), 'D1');
+  assert.equal(getHymnNavTitle('diversos', 12), 'D12');
+});
+
