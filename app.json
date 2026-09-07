@@ -34,8 +34,7 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "@config-plugins/react-native-pdf",
-      "@config-plugins/react-native-blob-util"
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
