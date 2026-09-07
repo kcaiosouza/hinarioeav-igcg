@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +16,7 @@ import { INITIAL_BOOKS } from '../../data/mockHinario';
 import { BookKey } from '../../types/hinario';
 import { Hino } from '../../types/hino';
 import { Toast } from '../../components/ui/Toast';
+import { HymnOptionsSheet } from '../../components/hinario/HymnOptionsSheet';
 
 const KNOWN_LYRICS_BY_TITLE: Record<
   string,
@@ -195,6 +197,32 @@ export default function HinoDetailScreen() {
 
   const [hino, setHino] = useState<Hino | null>(null);
   const [fontSize, setFontSize] = useState<number>(18);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const handleToggleFavorite = () => {
+    setIsFavorite((prev) => {
+      const next = !prev;
+      Toast.show(next ? 'Hino adicionado aos favoritos!' : 'Hino removido dos favoritos');
+      return next;
+    });
+  };
+
+  const handleOpenSheetMusic = () => {
+    Alert.alert(
+      'Partitura',
+      `A partitura do hino ${hino?.numero} - "${hino?.titulo}" estará disponível para download e visualização em breve!`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleOpenIGCGMusic = () => {
+    Alert.alert(
+      'IGCGMusic',
+      `Ouvir "${hino?.titulo}" no app IGCGMusic. Redirecionamento para a plataforma de música da igreja.`,
+      [{ text: 'Ouvir Agora', onPress: () => {} }, { text: 'Fechar', style: 'cancel' }]
+    );
+  };
 
   useEffect(() => {
     const found = resolveHino(id, book, title);
@@ -223,6 +251,16 @@ export default function HinoDetailScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
+      <HymnOptionsSheet
+        visible={isOptionsOpen}
+        onClose={() => setIsOptionsOpen(false)}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleToggleFavorite}
+        onOpenSheetMusic={handleOpenSheetMusic}
+        onOpenIGCGMusic={handleOpenIGCGMusic}
+      />
       <View style={styles.container}>
         {/* Top Navigation Bar */}
         <View style={styles.topBar}>
@@ -256,32 +294,25 @@ export default function HinoDetailScreen() {
             {hino.numero > 0 ? `Hino ${hino.numero}` : hino.categoria || 'Hino'}
           </Text>
 
-          <View style={styles.fontControls}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Diminuir tamanho da fonte"
-              onPress={() => setFontSize((s) => Math.max(14, s - 2))}
-              style={({ pressed }) => [
-                styles.fontBtn,
-                fontSize <= 14 && styles.fontBtnDisabled,
-                pressed && styles.btnPressed,
-              ]}
-            >
-              <Text style={styles.fontBtnText}>A-</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Aumentar tamanho da fonte"
-              onPress={() => setFontSize((s) => Math.min(28, s + 2))}
-              style={({ pressed }) => [
-                styles.fontBtn,
-                fontSize >= 28 && styles.fontBtnDisabled,
-                pressed && styles.btnPressed,
-              ]}
-            >
-              <Text style={styles.fontBtnText}>A+</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Opções do hino"
+            onPress={() => setIsOptionsOpen(true)}
+            style={({ pressed }) => [
+              styles.optionsBtn,
+              pressed && styles.btnPressed,
+            ]}
+          >
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Pressable>
         </View>
 
         {/* Lyrics & Stanzas ScrollArea */}
@@ -383,26 +414,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 8,
   },
-  fontControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  fontBtn: {
+  optionsBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     backgroundColor: THEME_COLORS.surface,
     borderWidth: 1,
     borderColor: THEME_COLORS.line,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  fontBtnDisabled: {
-    opacity: 0.5,
-  },
-  fontBtnText: {
-    fontFamily: THEME_FONTS.inter.semiBold,
-    fontSize: 13,
-    color: THEME_COLORS.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
