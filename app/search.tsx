@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   FlatList,
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,7 +39,13 @@ interface SearchItem {
 
 export default function SearchScreen() {
   const router = useRouter();
+  const inputRef = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+    inputRef.current?.blur();
+  };
 
   // Build searchable index from real parsed hymns catalog
   const catalog = useMemo<SearchItem[]>(() => {
@@ -132,6 +140,7 @@ export default function SearchScreen() {
   }, [catalog, query]);
 
   const handleSelectHymn = (item: SearchItem) => {
+    dismissKeyboard();
     router.push({
       pathname: '/hino/[id]',
       params: { id: item.number, book: item.bookKey, title: item.title },
@@ -140,115 +149,123 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.topbar}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-            hitSlop={8}
-            onPress={() => router.back()}
-            style={({ pressed }) => [
-              styles.backButton,
-              pressed && styles.backButtonPressed,
-            ]}
-          >
+      <TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
+        <View style={styles.container}>
+          {/* Header */}
+          <Pressable style={styles.topbar} onPress={dismissKeyboard}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Voltar"
+              hitSlop={8}
+              onPress={() => router.back()}
+              style={({ pressed }) => [
+                styles.backButton,
+                pressed && styles.backButtonPressed,
+              ]}
+            >
+              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M15 19l-7-7 7-7"
+                  stroke={THEME_COLORS.cream}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </Pressable>
+            <Text style={styles.headerTitle}>Buscar Hinos</Text>
+            <View style={styles.ghostSpacer} />
+          </Pressable>
+
+          {/* Search Input Bar */}
+          <View style={styles.inputContainer}>
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
               <Path
-                d="M15 19l-7-7 7-7"
-                stroke={THEME_COLORS.cream}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                stroke={THEME_COLORS.muted}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
-          </Pressable>
-          <Text style={styles.headerTitle}>Buscar Hinos</Text>
-          <View style={styles.ghostSpacer} />
-        </View>
-
-        {/* Search Input Bar */}
-        <View style={styles.inputContainer}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              stroke={THEME_COLORS.muted}
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              placeholder="Título, número ou trecho..."
+              placeholderTextColor={THEME_COLORS.mutedDim}
+              value={query}
+              onChangeText={setQuery}
+              autoFocus
+              returnKeyType="search"
+              accessibilityLabel="Campo de busca"
             />
-          </Svg>
-          <TextInput
-            style={styles.input}
-            placeholder="Título, número ou trecho..."
-            placeholderTextColor={THEME_COLORS.mutedDim}
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-            returnKeyType="search"
-            accessibilityLabel="Campo de busca"
-          />
-          {query.length > 0 && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Limpar busca"
-              onPress={() => setQuery('')}
-              hitSlop={8}
-              style={styles.clearBtn}
-            >
-              <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-                <Path
-                  d="M2 2L12 12M12 2L2 12"
-                  stroke={THEME_COLORS.muted}
-                  strokeWidth={1.6}
-                  strokeLinecap="round"
-                />
-              </Svg>
-            </Pressable>
-          )}
-        </View>
+            {query.length > 0 && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Limpar busca"
+                onPress={() => setQuery('')}
+                hitSlop={8}
+                style={styles.clearBtn}
+              >
+                <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+                  <Path
+                    d="M2 2L12 12M12 2L2 12"
+                    stroke={THEME_COLORS.muted}
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                  />
+                </Svg>
+              </Pressable>
+            )}
+          </View>
 
-        {/* Results List */}
-        <FlatList
-          data={filteredResults}
-          keyExtractor={(item, index) => `${item.bookKey}-${item.number}-${index}`}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>Nenhum hino encontrado</Text>
-              <Text style={styles.emptySubtitle}>
-                Não encontramos correspondências para &quot;{query}&quot;.
-              </Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${item.bookName} ${item.number} ${item.title}`}
-              onPress={() => handleSelectHymn(item)}
-              style={({ pressed }) => [
-                styles.itemCard,
-                pressed && styles.itemCardPressed,
-              ]}
-            >
-              <View style={styles.itemHeader}>
-                <Text style={styles.itemBadge}>
-                  {item.bookName} · nº {item.number}
+          {/* Results List */}
+          <FlatList
+            data={filteredResults}
+            keyExtractor={(item, index) => `${item.bookKey}-${item.number}-${index}`}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            onScrollBeginDrag={dismissKeyboard}
+            ListEmptyComponent={
+              <Pressable style={styles.emptyContainer} onPress={dismissKeyboard}>
+                <Text style={styles.emptyTitle}>Nenhum hino encontrado</Text>
+                <Text style={styles.emptySubtitle}>
+                  Não encontramos correspondências para &quot;{query}&quot;.
                 </Text>
-                {item.category && (
-                  <Text style={styles.itemCategory}>{item.category}</Text>
+              </Pressable>
+            }
+            ListFooterComponent={
+              <Pressable style={styles.footerSpacer} onPress={dismissKeyboard} />
+            }
+            renderItem={({ item }) => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${item.bookName} ${item.number} ${item.title}`}
+                onPress={() => handleSelectHymn(item)}
+                style={({ pressed }) => [
+                  styles.itemCard,
+                  pressed && styles.itemCardPressed,
+                ]}
+              >
+                <View style={styles.itemHeader}>
+                  <Text style={styles.itemBadge}>
+                    {item.bookName} · nº {item.number}
+                  </Text>
+                  {item.category && (
+                    <Text style={styles.itemCategory}>{item.category}</Text>
+                  )}
+                </View>
+                <Text style={styles.itemTitle}>{item.title}</Text>
+                {item.snippet && (
+                  <Text style={styles.itemSnippet}>{item.snippet}</Text>
                 )}
-              </View>
-              <Text style={styles.itemTitle}>{item.title}</Text>
-              {item.snippet && (
-                <Text style={styles.itemSnippet}>{item.snippet}</Text>
-              )}
-            </Pressable>
-          )}
-        />
-      </View>
+              </Pressable>
+            )}
+          />
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -316,8 +333,13 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   listContent: {
+    flexGrow: 1,
     paddingBottom: 24,
     gap: 10,
+  },
+  footerSpacer: {
+    flex: 1,
+    minHeight: 120,
   },
   itemCard: {
     backgroundColor: THEME_COLORS.surface,
@@ -360,6 +382,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   emptyContainer: {
+    flex: 1,
     paddingVertical: 48,
     alignItems: 'center',
     justifyContent: 'center',
