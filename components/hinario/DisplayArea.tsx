@@ -48,10 +48,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   placeholder: {
-    fontFamily: THEME_FONTS.inter.medium,
-    fontSize: 19,
+    fontFamily: THEME_FONTS.fraunces.semiBold,
+    fontSize: 22,
     color: THEME_COLORS.mutedDim,
-    letterSpacing: 0.2,
+    letterSpacing: 0.5,
     textAlign: "center",
   },
 });
