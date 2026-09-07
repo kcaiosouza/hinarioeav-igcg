@@ -11,8 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
-import { INITIAL_BOOKS } from '../data/mockHinario';
-import { MOCK_HINOS } from '../data/mockHinos';
+import { getAllHymnsList } from '../data/hinosRepository';
 
 interface SearchItem {
   id: string;
@@ -22,52 +21,34 @@ interface SearchItem {
   bookKey: string;
   category?: string;
   snippet?: string;
+  fullLyrics?: string;
 }
 
 export default function SearchScreen() {
   const router = useRouter();
   const [query, setQuery] = useState('');
 
-  // Build searchable index from catalog and mock hymns
+  // Build searchable index from real parsed hymns catalog
   const catalog = useMemo<SearchItem[]>(() => {
-    const items: SearchItem[] = [];
-    const seen = new Set<string>();
+    const list = getAllHymnsList();
+    return list.map((hino) => {
+      const firstLyrics = hino.estrofes[0] || hino.coro || '';
+      const cleanSnippet = firstLyrics
+        ? firstLyrics.replace(/\r?\n/g, ' ').slice(0, 80) + '...'
+        : undefined;
+      const allText = [hino.titulo, ...(hino.estrofes || []), hino.coro || ''].join(' ').toLowerCase();
 
-    // From INITIAL_BOOKS
-    Object.entries(INITIAL_BOOKS).forEach(([bookKey, book]) => {
-      Object.entries(book.data).forEach(([num, title]) => {
-        const uniqueKey = `${bookKey}-${num}`;
-        if (!seen.has(uniqueKey)) {
-          seen.add(uniqueKey);
-          items.push({
-            id: num,
-            number: num,
-            title,
-            bookName: book.name,
-            bookKey,
-          });
-        }
-      });
+      return {
+        id: hino.id,
+        number: String(hino.numero),
+        title: hino.titulo,
+        bookName: hino.categoria,
+        bookKey: hino.bookKey,
+        category: hino.categoria,
+        snippet: cleanSnippet,
+        fullLyrics: allText,
+      };
     });
-
-    // From MOCK_HINOS for richer data / snippets
-    MOCK_HINOS.forEach((hino) => {
-      const uniqueKey = `hinos-${hino.numero}`;
-      if (!seen.has(uniqueKey)) {
-        seen.add(uniqueKey);
-        items.push({
-          id: String(hino.numero),
-          number: String(hino.numero),
-          title: hino.titulo,
-          bookName: 'Hinos',
-          bookKey: 'hinos',
-          category: hino.categoria,
-          snippet: hino.estrofes[0]?.slice(0, 70) + '...',
-        });
-      }
-    });
-
-    return items;
   }, []);
 
   const filteredResults = useMemo(() => {
@@ -79,7 +60,7 @@ export default function SearchScreen() {
         item.number.includes(trimmed) ||
         item.title.toLowerCase().includes(trimmed) ||
         item.bookName.toLowerCase().includes(trimmed) ||
-        (item.snippet && item.snippet.toLowerCase().includes(trimmed))
+        (item.fullLyrics ? item.fullLyrics.includes(trimmed) : false)
     );
   }, [catalog, query]);
 

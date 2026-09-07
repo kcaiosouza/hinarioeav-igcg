@@ -18,68 +18,7 @@ import { Hino } from '../../types/hino';
 import { Toast } from '../../components/ui/Toast';
 import { HymnOptionsSheet } from '../../components/hinario/HymnOptionsSheet';
 
-const KNOWN_LYRICS_BY_TITLE: Record<
-  string,
-  { categoria?: string; estrofes: string[]; coro?: string }
-> = {
-  'Chuvas de Bênçãos': {
-    categoria: 'Hinos',
-    estrofes: [
-      'Chuvas de bênçãos teremos,\nÉ a promessa de Deus;\nTempos benditos veremos,\nSinais que vêm lá dos céus.',
-      'Chuvas de bênçãos teremos,\nVida e paz nos trará;\nSobre os montes e vales,\nO Teu poder descerá.',
-      'Chuvas de bênçãos teremos,\nManda-nos já, ó Senhor;\nDá-nos agora o refrigério,\nFruto do Teu santo amor.',
-    ],
-    coro: 'Chuvas de bênçãos,\nChuvas de bênçãos dos céus;\nGotas benditas já temos,\nMas nós queremos mais, ó Deus!',
-  },
-  'Deus é Amor': {
-    categoria: 'Cânticos',
-    estrofes: [
-      'Deus é amor, Sua graça infinda\nCobre a terra e alcança o céu;\nSua bondade tão doce e linda,\nRevelou-se em Cristo, o fiel.',
-      'Nenhuma sombra nem tempestade\nPode afastar o Seu terno cuidar;\nSua palavra é pura verdade,\nPara sempre há de reinar.',
-    ],
-    coro: 'Deus é amor, cantemos em coro,\nEle nos ama e guia na luz;\nMais precioso que prata e ouro,\nÉ o santo amor de Jesus.',
-  },
-  'Ainda que a Figueira': {
-    categoria: 'Suplemento',
-    estrofes: [
-      'Ainda que a figueira não floresça,\nE não haja fruto na videira;\nMesmo que a colheita pereça,\nE falte o pasto na clareira.',
-      'O Senhor Deus é a minha fortaleza,\nEle faz os meus pés como os da corça;\nCom Sua mão e infinita grandeza,\nRenova a esperança e a força.',
-    ],
-    coro: 'Eu me alegrarei no Senhor,\nExultarei no Deus da salvação;\nEle é a minha força e clamor,\nMinha paz e consolação.',
-  },
-  'Digno é o Senhor': {
-    categoria: 'Suplemento',
-    estrofes: [
-      'Digno é o Senhor sobre todo o louvor,\nCriador do universo, eterno Redentor;\nOs céus proclamam Sua majestade,\nE a terra exalta Sua santidade.',
-      'Diante do trono nos prostraremos,\nCom reverência e devoção;\nO Teu santo nome bendiremos,\nEm uma só voz e oração.',
-    ],
-    coro: 'Santo, Santo é o Cordeiro de Deus,\nReina com glória nas alturas dos céus;\nA Ele a honra, domínio e louvor,\nPara sempre adoramos o Senhor!',
-  },
-  'Grande é o Senhor': {
-    categoria: 'Hinos',
-    estrofes: [
-      'Grande é o Senhor e mui digno de louvor,\nNa cidade do nosso Deus, Seu monte santo;\nA alegria de toda a terra é o Salvador,\nQue nos envolve em Seu manto.',
-      'Sua fidelidade dura para sempre,\nDe geração em geração;\nNão há outro igual entre os homens,\nQue traga a redenção.',
-    ],
-    coro: 'Grande é o Senhor em quem temos a vitória,\nEle nos ajuda contra o adversário;\nProclamamos para sempre a Sua glória,\nNo Seu celeste santuário.',
-  },
-  'Vaso de Barro': {
-    categoria: 'Cânticos',
-    estrofes: [
-      'Como um vaso nas mãos do oleiro,\nQuero ser moldado por Ti, Senhor;\nQuebranta meu orgulho por inteiro,\nE enche-me do Teu amor.',
-      'Mesmo imperfeito e tão pequenino,\nCarrego um tesouro de imenso valor;\nA graça bendita do plano divino,\nA glória do meu Salvador.',
-    ],
-    coro: 'Vaso de barro sou em Tuas mãos,\nQuebra e faz de novo o meu ser;\nUsa-me conforme Teu coração,\nPara o Teu evangelho viver.',
-  },
-  'Ele é Fiel': {
-    categoria: 'Hinário Novo',
-    estrofes: [
-      'Mesmo quando as forças vacilarem,\nE a tempestade rugir com furor;\nMesmo que os montes se abalarem,\nPermanece o amor do Senhor.',
-      'Grandes prodígios operou no passado,\nE novas bênçãos derrama hoje aqui;\nSeu santo nome seja louvado,\nPois nunca se esquece de ti.',
-    ],
-    coro: 'Ele é fiel, Sua palavra não falha,\nÉ escudo e rocha em meio à batalha;\nOntem e hoje e eternamente o mesmo,\nEle é o Deus em quem creio!',
-  },
-};
+import { getHino, findHinoAnyBook, getAllHymnsList } from '../../data/hinosRepository';
 
 function resolveHino(
   id?: string,
@@ -87,82 +26,35 @@ function resolveHino(
   titleParam?: string
 ): Hino | null {
   if (!id) return null;
-  const num = parseInt(id, 10);
 
-  // 1. Resolve title and category from bookParam / titleParam / INITIAL_BOOKS
-  let resolvedTitle = titleParam?.trim();
-  let resolvedCategory: string | undefined;
-
-  if (bookParam && bookParam in INITIAL_BOOKS) {
-    const book = INITIAL_BOOKS[bookParam as BookKey];
-    resolvedCategory = book.name;
-    if (!resolvedTitle && book.data[id]) {
-      resolvedTitle = book.data[id];
-    }
+  // 1. Resolve directly by book and number/id
+  if (bookParam) {
+    const found = getHino(bookParam, id);
+    if (found) return found;
   }
 
-  // If no title yet, search across INITIAL_BOOKS
-  if (!resolvedTitle) {
-    for (const key of Object.keys(INITIAL_BOOKS) as BookKey[]) {
-      const book = INITIAL_BOOKS[key];
-      if (book.data[id]) {
-        resolvedTitle = book.data[id];
-        if (!resolvedCategory) {
-          resolvedCategory = book.name;
-        }
-        break;
-      }
-    }
+  // 2. Search across books by number
+  const across = findHinoAnyBook(id);
+  if (across) {
+    return across.hino;
   }
 
-  // If we have a resolved title
-  if (resolvedTitle) {
-    const known = KNOWN_LYRICS_BY_TITLE[resolvedTitle];
-    if (known) {
-      return {
-        id,
-        numero: isNaN(num) ? 0 : num,
-        titulo: resolvedTitle,
-        categoria: resolvedCategory || known.categoria || 'Hinário',
-        estrofes: known.estrofes,
-        coro: known.coro,
-      };
-    }
-
-    const mockMatch = MOCK_HINOS.find(
-      (h) => h.titulo.toLowerCase() === resolvedTitle!.toLowerCase()
+  // 3. Search by title if provided
+  if (titleParam) {
+    const all = getAllHymnsList();
+    const titleLower = titleParam.trim().toLowerCase();
+    const match = all.find(
+      (h) => h.titulo.toLowerCase() === titleLower
     );
-    if (mockMatch) {
-      return {
-        ...mockMatch,
-        id,
-        numero: isNaN(num) ? mockMatch.numero : num,
-        categoria: resolvedCategory || mockMatch.categoria,
-      };
-    }
-
-    return {
-      id,
-      numero: isNaN(num) ? 0 : num,
-      titulo: resolvedTitle,
-      categoria: resolvedCategory || 'Hinário',
-      estrofes: [
-        'Cantai ao Senhor com júbilo e devoção,\nPois grandiosas são as obras de Suas mãos;\nEm todo o tempo Sua bondade nos guiará,\nE a Sua verdade para sempre reinará.',
-        'Pelos caminhos da vida com fé caminhamos,\nNa rocha inabalável nós nos apoiamos;\nSua graça suprema restaura o nosso ser,\nE a vitória em Cristo nos faz resplandecer.',
-      ],
-      coro: 'Glória, honra e louvor ao nosso Salvador,\nQue nos ama e sustenta com infinito amor!',
-    };
+    if (match) return match;
   }
 
-  // Check MOCK_HINOS by id or numero
+  // 4. Check MOCK_HINOS as fallback
   const mockFound = MOCK_HINOS.find(
     (h) => h.id === id || String(h.numero) === id
   );
   if (mockFound) {
-    return {
-      ...mockFound,
-      categoria: resolvedCategory || mockFound.categoria,
-    };
+    return mockFound;
   }
 
   return null;

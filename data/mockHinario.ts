@@ -1,44 +1,30 @@
 import { BookInfo, BookKey, SearchResult } from '../types/hinario';
+import { getBookTitles } from './hinosRepository';
 
 export const INITIAL_BOOKS: Record<BookKey, BookInfo> = {
   hinos: {
     key: 'hinos',
     label: 'H',
     name: 'Hinos',
-    data: {
-      '1': 'Chuvas de Bênçãos',
-      '124': 'Grande é o Senhor',
-    },
+    data: getBookTitles('hinos'),
   },
   canticos: {
     key: 'canticos',
     label: 'C',
     name: 'Cânticos',
-    data: {
-      '7': 'Deus é Amor',
-      '200': 'Vaso de Barro',
-    },
+    data: getBookTitles('canticos'),
   },
   suplemento: {
     key: 'suplemento',
     label: 'S',
     name: 'Suplemento',
-    data: {
-      '45': 'Ainda que a Figueira',
-      '82': 'Digno é o Senhor',
-    },
+    data: getBookTitles('suplemento'),
   },
   novo: {
     key: 'novo',
     label: 'N',
     name: 'Hinário Novo',
-    data: {
-      '1': 'Chuvas de Bênçãos',
-      '7': 'Deus é Amor',
-      '124': 'Grande é o Senhor',
-      '200': 'Vaso de Barro',
-      '300': 'Ele é Fiel',
-    },
+    data: {},
   },
 };
 
