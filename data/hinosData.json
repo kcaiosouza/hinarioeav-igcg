@@ -9432,5 +9432,206 @@
       ]
     }
   },
-  "novo": {}
+  "novo": {
+    "1": {
+      "id": "1",
+      "numero": 1,
+      "titulo": "Seu plano",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Ao Pai santo seja a glória\nE ao Filho Seu;\nAo Espírito, a glória —\nUm só Deus.",
+        "Contemplando o céu, a terra\nQue Deus planejou,\nNossa alma, pois, Lhe presta\nO louvor.",
+        "Mas anelas, Deus, ter filhos\nPara Te amar\nE, guiados por Teu Filho,\nTe louvar.",
+        "Revelaste em Teu plano\nTeu secreto amor,\nNosso afeto conquistando\nCom dulçor.",
+        "Pela redenção, em Cristo,\n(Derrotado o mal!)\nNova criação fizeste\nAfinal!",
+        "Ao Pai santo seja a glória,\nE ao Filho Seu;\nAo Espírito, a glória —\nUm só Deus."
+      ]
+    },
+    "2": {
+      "id": "2",
+      "numero": 2,
+      "titulo": "Sua revelação",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Glória, glória, glória! Deus é exaltado\nPela eternidade com toda adoração.\nPai e Filho e Espír'to — ei-Lo revelado —\nTodos a Ele, pois, se prostrarão!",
+        "Nome às famílias dá o Pai da glória;\nE sustém o Filho a tudo com poder;\nO Espírito enche a criação de glória —\nTal Plenitude vamos bendizer!",
+        "Deus, Te adoramos! Como tens beleza!\nHoje nos rendemos à Fronte de esplendor!\nMajestade e força, glória e grandeza\nTens, ó Eterno, grande Criador!"
+      ]
+    },
+    "3": {
+      "id": "3",
+      "numero": 3,
+      "titulo": "Sua revelação",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Mistério tão profundo\nDeus é um e é três.\nMaravilhoso és, ó Deus,\nTriúno, grande és!",
+        "Mistério tão profundo\nDeus é um e é três.\nMaravilhoso és, ó Deus,\nTriúno, grande és!\n\nIrmãos:\nAquele que nasceu\nÉ Deus, o forte Deus,\nUm Filho se nos deu,\nO Pai eterno é,\n\nIrmãs:\nMenino, forte Deus,\nMaravilhoso é!\nE Ele e o Pai são um;\nMistério sem igual!",
+        "É o Senhor o Espírito,\nQuem O pode explicar?\nTal Cristo vivo entrou em mim,\nE vida veio dar.",
+        "É o Senhor o Espírito,\nGlorioso e real!\nTal Cristo vivo entrou em nós,\nCom vida eternal!\n\nIrmãos:\nO último Adão\nTornou-se o Espírito;\nCristo, o Espírito,\nTodo-Inclusivo é.\n\nIrmãs:\nO último Adão\nTornou-se o Espírito;\nCristo é o Espírito\nE hoje habita em nós.",
+        "Deus Pai, no Filho, veio\nE aqui me alcançou.\nDeus, como o Espírito, entrou em mim;\nMorada Dele sou!",
+        "Manancial Deus Pai é,\nE Deus Filho, o jorrar,\nE Deus Espírito, o fluir,\nFluindo sem cessar.\n\nIrmãos:\nO Deus Triúno em mim:\nÉ um mistério, sim!\nQue glorioso é!\nO Deus Triúno em nós!\n\nIrmãs:\nO Deus Triúno em mim:\nÉ um mistério, sim!\nMaravilhoso é!\nO Deus Triúno em nós!"
+      ]
+    },
+    "7": {
+      "id": "7",
+      "numero": 7,
+      "titulo": "Sua adoração",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Santo, Santo, Santo! Deus onipotente!\nVamos para sempre louvar-Te com ardor.\nSanto, Santo, Santo, justo e clemente!\nÉs Deus Triúno, grande Criador!",
+        "Santo, Santo, Santo! Todos Te celebram,\nAnjos e remidos, louvor rendendo a Ti.\nAntes que houvesse firmamento e terra,\nÓ Deus, Tu eras, és e hás de vir!",
+        "Santo, Santo, Santo! Vis e imperfeitos,\nComo Tua glória veremos sem tremor?\nTu somente és santo, só Tu és perfeito,\nPleno em pureza, força e amor.",
+        "Santo, Santo, Santo! Deus onipotente!\nTuas obras louvam Teu nome com fervor.\nSanto, Santo, Santo, justo e clemente!\nÉs Deus Triúno, grande Criador!"
+      ]
+    },
+    "8": {
+      "id": "8",
+      "numero": 8,
+      "titulo": "Seu louvor",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Glória, glória ao Pai santo!\nGlória, glória ao Filho dai!\nGlória, glória ao Espír'to!\nAo Triúno Deus louvai!",
+        "Glória ao Pai que fez o plano,\nGlória a Quem o efetuou,\nGlória Àquele que o transmite —\nAo Triúno Deus, louvor."
+      ],
+      "coro": "Damos glória, damos glória,\nDamos glória a nosso Deus:\nAo Pai, Filho e Espír'to!\nAleluia! Glória a nosso Deus!"
+    },
+    "9": {
+      "id": "9",
+      "numero": 9,
+      "titulo": "Seu louvor",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Louvai o Deus que bênçãos dá;\nLouvai-O, todos, sem cessar;\nLouvai-O, hostes celestiais;\nAo Deus Triúno, glória dai!",
+        "Louvai o Pai, Deus Criador;\nLouvai o Filho, Redentor;\nE o Santo Espírito louvai;\nAo Deus Triúno, glória dai!"
+      ]
+    },
+    "10": {
+      "id": "10",
+      "numero": 10,
+      "titulo": "Seu louvor",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "A Deus Pai, dai toda a glória,\nA Deus Filho, coroai,\nE, ao Espírito, dai glória —\nDeus Triúno, Jeová!\nGlória ao Todo-Poderoso,\nQue é e era e virá!"
+      ]
+    },
+    "11": {
+      "id": "11",
+      "numero": 11,
+      "titulo": "Com graças e louvor",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Mil graças e louvor, a nosso Deus rendamos!\nProdígios operou; em Quem nos alegramos.\nNos ternos braços Seus, nos tem levado assim,\nCom bênçãos, dons dos céus, agora e até o fim.",
+        "Esteja junto a nós por toda a nossa vida,\nE a nossa alma, pois, dê paz e alegria;\nQue a graça divinal nos venha dirigir,\nE guarde-nos do mal de hoje e do porvir.",
+        "Mil graças e louvor ao Deus Triúno e Santo,\nQue reina em amor, sublime, soberano;\nAdoram terra e céus o Deus que eterno é,\nQue era e que é, que sempre há de ser."
+      ]
+    },
+    "12": {
+      "id": "12",
+      "numero": 12,
+      "titulo": "Sua imortalidade",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Ó Deus invisível, mui sábio, imortal,\nEm luz intangível, oculto e real,\nBendito, glorioso; das eras, Senhor,\nA Ti, Vitorioso, rendemos louvor.",
+        "Constante, incansável, em glória e poder,\nÉs Rei respeitável, supremo a reger;\nQual sólido monte; és justo, Senhor,\nE mui rica fonte que mana o amor.",
+        "Criaste a tudo; da vida, o Autor.\nDe todos e tudo, o Sustentador;\nNós somos quais flores, de glória fugaz,\nSó Tu permaneces, não mudas jamais.",
+        "És Pai glorioso, és luz a brilhar,\nOs anjos Teu rosto não ousam mirar;\nMas nós entoamos aqui Teu louvor,\nE as frontes curvamos, humildes, Senhor.",
+        "Ó Deus invisível, mui sábio, imortal,\nEm luz intangível, oculto e real,\nBendito, glorioso; das eras, Senhor,\nA Ti, Vitorioso, rendemos louvor."
+      ]
+    },
+    "13": {
+      "id": "13",
+      "numero": 13,
+      "titulo": "Sua grandeza",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Senhor, meu Deus, aqui maravilhado\nAo contemplar a imensa criação —\nMar, terra e céu de estrelas cravejado —\nMedito em Teu poder e perfeição,",
+        "Ao caminhar por matas e florestas\nE escutar as aves a cantar,\nAo vislumbrar paisagens pitorescas,\nE ao sentir o vento a sussurrar,",
+        "Ao refletir: Teu Filho não poupaste,\nPuseste meus pecados sobre Si,\nNa rude cruz por mim O penduraste,\nNa qual sangrou, morreu por me remir,",
+        "Ao vir Jesus com brado de vitória\nE para Si tomar-me duma vez,\nAli por fim, prostrado, dando glória,\nAdorarei: \"Meu Deus, grandioso és!\"."
+      ],
+      "coro": "Minh'alma, então, entoa-Te louvor:\nGrandioso és Tu! Grandioso és Tu!\nMinh'alma, então, entoa-Te louvor:\nGrandioso és Tu! Grandioso és Tu!"
+    },
+    "14": {
+      "id": "14",
+      "numero": 14,
+      "titulo": "Sua fidelidade",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Tu és fiel, ó Deus, meu Pai celeste,\nEm Ti nem sombra de mudança há;\nNunca mudaste e nunca faltaste,\nComo tens sido, ó Pai, assim serás.",
+        "Inverno e verão, flores e frutos,\nSol, lua, estrelas a brilhar no céu,\nSão testemunhas da fidelidade,\nMisericórdia e amor de Deus.",
+        "Pleno e real perdão, paz permanente,\nTua presença a me encorajar,\nForça de hoje, da glória, a esperança,\nBênçãos que posso com os Teus provar."
+      ],
+      "coro": "Tu és fiel, ó Deus! Tu és fiel, ó Deus!\nCada manhã há mercê que é sem fim;\nO que preciso tens sempre provido,\nTu és fiel, ó Deus, fiel a mim."
+    },
+    "15": {
+      "id": "15",
+      "numero": 15,
+      "titulo": "Seu amor",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Oh! vamos juntos entoar:\nDeus é amor, Deus é amor;\nOs céus e a terra a ecoar:\nDeus é amor, Deus é amor;\nPor Cristo e Sua redenção,\nDulçor em forma de canção\nComponha cada coração:\nDeus é amor, Deus é amor!",
+        "Oh! Que ventura! Que porção!\nDeus é amor, Deus é amor.\nPromessas Dele gozo dão;\nDeus é amor, Deus é amor;\nDeus nosso sol e escudo é,\nAuxílio, esteio, força e fé,\nConosco sempre há de ser;\nDeus é amor, Deus é amor!",
+        "Em glória todos cantarão:\nDeus é amor, Deus é amor;\nEm imponente, novo som:\nDeus é amor, Deus é amor;\nEm meio a eras eternais,\nCom todas hostes celestiais,\nSim, cantaremos inda mais:\nDeus é amor, Deus é amor!"
+      ]
+    },
+    "16": {
+      "id": "16",
+      "numero": 16,
+      "titulo": "Seu amor",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "O singular amor de Deus\nNinguém jamais pode explicar;\nÉ bem mais alto que os céus,\nE mais profundo que o mar.\nA nossos pais, que transgrediram,\nDeus prometeu-lhes Jesus;\nOh! que amor sem par ouviram,\nFiel promessa da cruz.",
+        "E quando o tempo se passar,\nOs reinos todos vão ruir;\nIngratos homens, proclamar:\n\"Ó, venham, montes, nos cobrir.\".\nPorém o amor de Deus perdura,\nTé em tristeza e dor;\nE vida eterna bem segura,\nTem o que crê no Amor.",
+        "Se fosse tinta todo o mar,\nOs céus infindos, os papéis,\nQuais penas, todo hastil que há\nE os homens, escrivães fiéis,\nNem mesmo assim o Amor seria\nDescrito em todo o fulgor;\nOh! Deslumbrante maravilha\nÉ esse eterno Amor!"
+      ],
+      "coro": "O amor de Deus tão rico e puro,\nNinguém o pode explicar;\nJamais tem fim, é bem seguro,\nPra sempre o hei de louvar."
+    },
+    "17": {
+      "id": "17",
+      "numero": 17,
+      "titulo": "Seu amor",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Que foi, bendito Deus,\nQue Te fez entregar\nO Filho amado Teu\nAo vir-nos resgatar?\nFoi Teu amor, infindo amor,\nFoi Teu amor, infindo amor,\nEm prol de alguém vil, pecador.",
+        "Por que Teu Filho, ó Deus,\nTeu trono abandonou\nE sangue aqui verteu,\nSofrendo morte e dor?\nFoi Seu amor, infindo amor,\nFoi Seu amor, infindo amor,\nQue O fez sofrer cruz, morte e dor.",
+        "Foi Tua decisão\nO Espírito verter,\nE nosso coração\nDe paz e amor encher.\nPor que razão, por que será?\nPor que razão, por que será?\nPor Teu amor sem fim, sem par.",
+        "Por Tua graça, então,\nSó Teu é nosso amor!\nDe nosso coração\nTransborde o louvor!\nÓ Deus, nos faz Te adorar,\nÓ Deus, nos faz Te adorar,\nPor Teu amor sem fim, sem par."
+      ]
+    },
+    "19": {
+      "id": "19",
+      "numero": 19,
+      "titulo": "Sua escolha",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Antes da criação do mundo,\nEscolheste-nos, ó Pai;\nTeu tocante amor profundo\nVeio a Cristo nos chamar,\nE em Cristo, e em Cristo,\nFirmes nos conservará,\nFirmes nos conservará.",
+        "Mesmo que o mundo mude,\nDeus é o mesmo e tem frescor;\nEis conosco, sempre firmes,\nSua aliança e amor.\nVós, Seus filhos, vós, Seus filhos,\nA Seu nome dai louvor,\nA Seu nome dai louvor.",
+        "É a compaixão divina\nMinha glória e canção;\nDo princípio ao fim, tal graça\nConquistou meu coração.\nPor amar-nos, por amar-nos\nDeus nos deu Seu Filho então,\nDeus nos deu Seu Filho então.",
+        "Pai amado, Te adoramos,\nExaltamos Teu amor;\nTé o encontro com Teu Filho\nSoaremos o louvor,\nDando glória, dando glória\nAo Cordeiro, ao Deus de amor,\nAo Cordeiro, ao Deus de amor."
+      ]
+    },
+    "20": {
+      "id": "20",
+      "numero": 20,
+      "titulo": "Sua escolha",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Teu amor, Pai, conheceu-nos,\nAntes de o mundo haver;\nA Jesus mui constrangidos\nAtraiu-nos seu poder,\nE em Cristo, e em Cristo,\nHá de firmes nos manter,\nHá de firmes nos manter.",
+        "Nos envolve o amor eterno,\nQue riquezas, pois, nos dá!\nSeu poder é que nos firma,\nFaz-nos sempre descansar.\nPai amado, Pai amado,\nSempre vamos Te louvar,\nSempre vamos Te louvar.",
+        "Deus amado, Te adoramos!\nProclamamos Teu favor,\nTé, diante de Teu trono,\nA Teu nome dar louvor:\n\"Glória e honra, glória e honra\nAo Cordeiro, ao Deus de amor,\nAo Cordeiro, ao Deus de amor!\""
+      ]
+    },
+    "21": {
+      "id": "21",
+      "numero": 21,
+      "titulo": "Sua predestinação",
+      "categoria": "Hinário Novo",
+      "estrofes": [
+        "Ó Deus, Pai da glória bendito,\nQueremos louvor Te render;\nEm nós dá poder Teu Espír'to,\nFaz Tua grandeza apreender.",
+        "Pensamos no Homem alçado\nÀ glória, Cabeça no céu;\nFoi entre os mortos contado,\nMas por Teu poder reviveu.",
+        "Pensamos: ó Pai, Tua glória,\nÉ fonte de nossa eleição;\nA glória de amor que outrora,\nNo Filho, nos fez redenção.",
+        "E, em Cristo já predestinados\nA Teus filhos, Pai, nos tornar,\nAqui Te adoramos, mui gratos,\nCientes de nosso lugar."
+      ]
+    }
+  }
 }

@@ -15,7 +15,7 @@ export function getHino(bookKey: string, numberOrId: string | number): Hino | nu
 
 export function findHinoAnyBook(numberOrId: string | number): { hino: Hino; bookKey: BookKey } | null {
   const key = String(numberOrId);
-  for (const bKey of ['hinos', 'canticos', 'suplemento'] as BookKey[]) {
+  for (const bKey of ['hinos', 'canticos', 'suplemento', 'novo'] as BookKey[]) {
     if (typedData[bKey]?.[key]) {
       return { hino: typedData[bKey][key], bookKey: bKey };
     }
@@ -34,7 +34,7 @@ export function getBookTitles(bookKey: string): Record<string, string> {
 
 export function getAllHymnsList(): Array<Hino & { bookKey: BookKey }> {
   const list: Array<Hino & { bookKey: BookKey }> = [];
-  for (const bKey of ['hinos', 'canticos', 'suplemento'] as BookKey[]) {
+  for (const bKey of ['hinos', 'canticos', 'suplemento', 'novo'] as BookKey[]) {
     const book = typedData[bKey] || {};
     for (const hino of Object.values(book)) {
       list.push({ ...hino, bookKey: bKey });

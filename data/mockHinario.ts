@@ -24,7 +24,7 @@ export const INITIAL_BOOKS: Record<BookKey, BookInfo> = {
     key: 'novo',
     label: 'N',
     name: 'Hinário Novo',
-    data: {},
+    data: getBookTitles('novo'),
   },
 };
 
