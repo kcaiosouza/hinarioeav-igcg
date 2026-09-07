@@ -184,33 +184,30 @@ export default function PartituraScreen() {
             </Pressable>
           </View>
         )}
-      </View>
 
-      {/* Bottom Navigation Footer */}
-      <View style={styles.footerBar}>
+        {/* Floating Navigation Buttons */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Hino anterior"
           disabled={!canGoPrev}
           onPress={handlePrevHymn}
           style={({ pressed }) => [
-            styles.navBtn,
+            styles.floatingNavBtn,
+            styles.floatingBtnLeft,
             !canGoPrev && styles.btnDisabled,
             pressed && canGoPrev && styles.btnPressed,
           ]}
         >
-          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
             <Path
               d="M15 19l-7-7 7-7"
               stroke={canGoPrev ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
-              strokeWidth={2}
+              strokeWidth={2.5}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </Svg>
         </Pressable>
-
-        <View style={styles.footerSpacer} />
 
         <Pressable
           accessibilityRole="button"
@@ -218,16 +215,17 @@ export default function PartituraScreen() {
           disabled={!canGoNext}
           onPress={handleNextHymn}
           style={({ pressed }) => [
-            styles.navBtn,
+            styles.floatingNavBtn,
+            styles.floatingBtnRight,
             !canGoNext && styles.btnDisabled,
             pressed && canGoNext && styles.btnPressed,
           ]}
         >
-          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
             <Path
               d="M9 5l7 7-7 7"
               stroke={canGoNext ? THEME_COLORS.cream : THEME_COLORS.mutedDim}
-              strokeWidth={2}
+              strokeWidth={2.5}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -303,6 +301,7 @@ const styles = StyleSheet.create({
   viewerContainer: {
     flex: 1,
     backgroundColor: THEME_COLORS.bg,
+    position: "relative",
   },
   scrollView: {
     flex: 1,
@@ -311,7 +310,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 12,
     paddingTop: 12,
-    paddingBottom: 40,
+    paddingBottom: 88,
     alignItems: "center",
     gap: 16,
   },
@@ -384,28 +383,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: THEME_COLORS.cream,
   },
-  footerBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    height: 56,
-    paddingHorizontal: 20,
+  floatingNavBtn: {
+    position: "absolute",
+    bottom: 24,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: THEME_COLORS.surface,
-    borderTopWidth: 1,
-    borderTopColor: THEME_COLORS.line,
-  },
-  footerSpacer: {
-    flex: 1,
-  },
-  navBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: THEME_COLORS.surfaceRaised,
     borderWidth: 1,
     borderColor: THEME_COLORS.line,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  floatingBtnLeft: {
+    left: 20,
+  },
+  floatingBtnRight: {
+    right: 20,
   },
   btnDisabled: {
     opacity: 0.25,
