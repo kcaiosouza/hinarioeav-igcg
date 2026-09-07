@@ -1,33 +1,38 @@
+import { useAssets } from "expo-asset";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React from "react";
 import {
+  ActivityIndicator,
+  Dimensions,
   Image,
   ImageSourcePropType,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { WebView } from "react-native-webview";
 import { THEME_COLORS, THEME_FONTS } from "../constants/theme";
 
-// Páginas de alta resolução da partitura (exemple-file.pdf)
-const SCORE_PAGES: { page: number; source: ImageSourcePropType }[] = [
+// Arquivo PDF original da partitura
+const SAMPLE_PDF = require("../assets/pdfs/exemple-file.pdf");
+
+// Páginas de alta resolução para plataformas sem visualizador nativo de PDF
+const FALLBACK_PAGES: { page: number; source: ImageSourcePropType }[] = [
   { page: 1, source: require("../assets/pdfs/pages/page-1.png") },
   { page: 2, source: require("../assets/pdfs/pages/page-2.png") },
   { page: 3, source: require("../assets/pdfs/pages/page-3.png") },
 ];
 
-// Proporção exata da página do documento PDF (612 x 792 - Formato Padrão)
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PAGE_ASPECT_RATIO = 612 / 792;
-const HORIZONTAL_MARGIN = 12;
 
 export default function PartituraScreen() {
   const router = useRouter();
-  const { width: windowWidth } = useWindowDimensions();
   const params = useLocalSearchParams<{
     hinoNumero?: string;
     hinoTitulo?: string;
@@ -36,35 +41,89 @@ export default function PartituraScreen() {
   const numero = params.hinoNumero ?? "";
   const titulo = params.hinoTitulo ?? "Partitura";
 
-  const [activePage, setActivePage] = useState(1);
-  const [zoomScale, setZoomScale] = useState(1.0);
-  const lastTapRef = useRef<number>(0);
+  // Carrega o asset do PDF real
+  const [assets, error] = useAssets([SAMPLE_PDF]);
+  const pdfAsset = assets?.[0];
+  const pdfUri = pdfAsset?.localUri || pdfAsset?.uri;
 
-  // Largura base ajustada perfeitamente à tela do dispositivo
-  const basePageWidth = Math.min(windowWidth - HORIZONTAL_MARGIN * 2, 720);
-  const basePageHeight = Math.round(basePageWidth / PAGE_ASPECT_RATIO);
+  // No iOS, o WebKit possui renderizador vetorial nativo de PDF (PDFKit).
+  // Abrindo o arquivo diretamente via URI local, a qualidade do zoom é vetorial (infinita).
+  const isApple = Platform.OS === "ios";
 
-  const cardWidth = Math.round(basePageWidth * zoomScale);
-  const cardHeight = Math.round(basePageHeight * zoomScale);
-
-  const handleDoubleTap = () => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 320) {
-      setZoomScale((prev) => (prev > 1.05 ? 1.0 : 1.5));
+  const renderViewer = () => {
+    if (error) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>
+            Erro ao carregar o arquivo PDF: {error.message}
+          </Text>
+        </View>
+      );
     }
-    lastTapRef.current = now;
-  };
 
-  const handleZoomIn = () => {
-    setZoomScale((prev) => Math.min(2.5, Number((prev + 0.25).toFixed(2))));
-  };
+    if (!pdfUri) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={THEME_COLORS.cream} />
+          <Text style={styles.loadingText}>Abrindo documento PDF...</Text>
+        </View>
+      );
+    }
 
-  const handleZoomOut = () => {
-    setZoomScale((prev) => Math.max(1.0, Number((prev - 0.25).toFixed(2))));
-  };
+    if (isApple) {
+      return (
+        <WebView
+          source={{ uri: pdfUri }}
+          originWhitelist={["*"]}
+          allowingReadAccessToURL={pdfUri}
+          allowFileAccess
+          allowUniversalAccessFromFileURLs
+          scalesPageToFit
+          bounces={false}
+          scrollEnabled
+          style={styles.webview}
+          startInLoadingState
+          renderLoading={() => (
+            <View style={styles.centerContainer}>
+              <ActivityIndicator size="large" color={THEME_COLORS.cream} />
+              <Text style={styles.loadingText}>Renderizando partitura em PDF...</Text>
+            </View>
+          )}
+        />
+      );
+    }
 
-  const handleResetZoom = () => {
-    setZoomScale(1.0);
+    // Android / Web: visualizador contínuo com suporte a zoom nativo
+    const cardWidth = Math.min(SCREEN_WIDTH - 24, 700);
+    const cardHeight = Math.round(cardWidth / PAGE_ASPECT_RATIO);
+
+    return (
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        maximumZoomScale={3}
+        minimumZoomScale={1}
+        showsVerticalScrollIndicator
+      >
+        {FALLBACK_PAGES.map((item) => (
+          <View
+            key={item.page}
+            style={[styles.pageCard, { width: cardWidth, height: cardHeight }]}
+          >
+            <Image
+              source={item.source}
+              style={styles.pageImage}
+              resizeMode="contain"
+            />
+            <View style={styles.pageBadge}>
+              <Text style={styles.pageBadgeText}>
+                Página {item.page} de {FALLBACK_PAGES.length}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    );
   };
 
   return (
@@ -116,135 +175,14 @@ export default function PartituraScreen() {
           )}
         </View>
 
-        {/* Page counter badge */}
-        <View style={styles.pageBadge}>
-          <Text style={styles.pageBadgeText}>
-            {activePage}/{SCORE_PAGES.length}
-          </Text>
+        {/* Formato indicator */}
+        <View style={styles.formatBadge}>
+          <Text style={styles.formatText}>PDF</Text>
         </View>
       </View>
 
-      {/* Main Content Area */}
-      <View style={styles.viewerWrapper}>
-        <ScrollView
-          style={styles.verticalScrollView}
-          contentContainerStyle={[
-            styles.verticalScrollContent,
-            { alignItems: zoomScale > 1 ? "flex-start" : "center" },
-          ]}
-          showsVerticalScrollIndicator={true}
-          onScroll={(e) => {
-            const offsetY = e.nativeEvent.contentOffset.y;
-            const totalHeight = e.nativeEvent.contentSize.height;
-            const pageHeight = totalHeight / SCORE_PAGES.length;
-            const currentPage = Math.min(
-              SCORE_PAGES.length,
-              Math.max(1, Math.floor(offsetY / pageHeight) + 1),
-            );
-            if (currentPage !== activePage) {
-              setActivePage(currentPage);
-            }
-          }}
-          scrollEventThrottle={16}
-        >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              alignItems: "center",
-              justifyContent: "center",
-              minWidth: "100%",
-              paddingHorizontal: HORIZONTAL_MARGIN,
-            }}
-          >
-            <Pressable onPress={handleDoubleTap} style={styles.pagesContainer}>
-              {SCORE_PAGES.map((item) => (
-                <View
-                  key={item.page}
-                  style={[
-                    styles.pageCard,
-                    {
-                      width: cardWidth,
-                      height: cardHeight,
-                    },
-                  ]}
-                >
-                  <Image
-                    source={item.source}
-                    style={styles.pageImage}
-                    resizeMode="contain"
-                  />
-                  <View style={styles.pageFooterBadge}>
-                    <Text style={styles.pageFooterText}>
-                      Página {item.page} de {SCORE_PAGES.length}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </Pressable>
-          </ScrollView>
-        </ScrollView>
-
-        {/* Floating Zoom Controls Bar */}
-        <View style={styles.floatingControls}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Diminuir zoom"
-            onPress={handleZoomOut}
-            disabled={zoomScale <= 1.0}
-            style={({ pressed }) => [
-              styles.zoomBtn,
-              zoomScale <= 1.0 && styles.zoomBtnDisabled,
-              pressed && styles.btnPressed,
-            ]}
-          >
-            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M5 12h14"
-                stroke={zoomScale <= 1.0 ? THEME_COLORS.mutedDim : THEME_COLORS.cream}
-                strokeWidth={2.4}
-                strokeLinecap="round"
-              />
-            </Svg>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ajustar à tela"
-            onPress={handleResetZoom}
-            style={({ pressed }) => [
-              styles.zoomLabelBtn,
-              pressed && styles.btnPressed,
-            ]}
-          >
-            <Text style={styles.zoomText}>{Math.round(zoomScale * 100)}%</Text>
-            {zoomScale !== 1.0 && (
-              <Text style={styles.zoomResetHint}>ajustar</Text>
-            )}
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Aumentar zoom"
-            onPress={handleZoomIn}
-            disabled={zoomScale >= 2.5}
-            style={({ pressed }) => [
-              styles.zoomBtn,
-              zoomScale >= 2.5 && styles.zoomBtnDisabled,
-              pressed && styles.btnPressed,
-            ]}
-          >
-            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M12 5v14M5 12h14"
-                stroke={zoomScale >= 2.5 ? THEME_COLORS.mutedDim : THEME_COLORS.cream}
-                strokeWidth={2.4}
-                strokeLinecap="round"
-              />
-            </Svg>
-          </Pressable>
-        </View>
-      </View>
+      {/* Viewer Area */}
+      <View style={styles.viewerContainer}>{renderViewer()}</View>
     </SafeAreaView>
   );
 }
@@ -295,7 +233,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 2,
   },
-  pageBadge: {
+  formatBadge: {
     minWidth: 38,
     height: 28,
     borderRadius: 14,
@@ -306,24 +244,45 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 8,
   },
-  pageBadgeText: {
+  formatText: {
     fontFamily: THEME_FONTS.inter.semiBold,
-    fontSize: 12,
+    fontSize: 11,
     color: THEME_COLORS.cream,
   },
-  viewerWrapper: {
-    flex: 1,
-    position: "relative",
-  },
-  verticalScrollView: {
+  viewerContainer: {
     flex: 1,
     backgroundColor: THEME_COLORS.bg,
   },
-  verticalScrollContent: {
-    paddingTop: 12,
-    paddingBottom: 80, // espaço para não sobrepor o botão flutuante
+  centerContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    gap: 12,
   },
-  pagesContainer: {
+  loadingText: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 14,
+    color: THEME_COLORS.muted,
+  },
+  errorText: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 14,
+    color: "#f87171",
+    textAlign: "center",
+  },
+  webview: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.bg,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.bg,
+  },
+  scrollContent: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 40,
     alignItems: "center",
     gap: 16,
   },
@@ -342,7 +301,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  pageFooterBadge: {
+  pageBadge: {
     position: "absolute",
     bottom: 6,
     right: 8,
@@ -351,55 +310,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 6,
   },
-  pageFooterText: {
+  pageBadgeText: {
     fontFamily: THEME_FONTS.inter.medium,
     fontSize: 10,
     color: "#ffffff",
-  },
-  floatingControls: {
-    position: "absolute",
-    bottom: 20,
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: THEME_COLORS.surface,
-    borderWidth: 1,
-    borderColor: THEME_COLORS.line,
-    borderRadius: 100,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-    gap: 4,
-  },
-  zoomBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  zoomBtnDisabled: {
-    opacity: 0.4,
-  },
-  zoomLabelBtn: {
-    paddingHorizontal: 10,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  zoomText: {
-    fontFamily: THEME_FONTS.inter.semiBold,
-    fontSize: 13,
-    color: THEME_COLORS.cream,
-  },
-  zoomResetHint: {
-    fontFamily: THEME_FONTS.inter.regular,
-    fontSize: 9,
-    color: THEME_COLORS.muted,
-    marginTop: -2,
   },
 });
