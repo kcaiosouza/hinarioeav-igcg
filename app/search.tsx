@@ -85,15 +85,13 @@ export default function SearchScreen() {
     const normalizedQuery = normalizeSearchText(query);
     if (!normalizedQuery) return catalog;
 
-    const queryWords = normalizedQuery.split(' ').filter(Boolean);
-
     const scoredItems: Array<{ item: SearchItem; score: number }> = [];
 
     for (const item of catalog) {
       let score = 0;
       let matchingSnippet = item.defaultSnippet;
 
-      // Scoring rules:
+      // Scoring rules (strict contiguous matching only):
       // 1. Exact number match
       if (item.normNumber === normalizedQuery) {
         score = 100;
@@ -105,21 +103,14 @@ export default function SearchScreen() {
         score = 70;
       } else if (item.normLyrics.includes(normalizedQuery)) {
         score = 50;
-      } else if (
-        queryWords.length > 1 &&
-        queryWords.every((w) => item.normLyrics.includes(w))
-      ) {
-        score = 30;
       } else if (item.normBook.includes(normalizedQuery)) {
         score = 20;
       }
 
       if (score > 0) {
-        // Look for the specific section that matched the query to show in snippet
-        const matchSection = item.sections.find(
-          (sec) =>
-            sec.norm.includes(normalizedQuery) ||
-            (queryWords.length > 1 && queryWords.every((w) => sec.norm.includes(w)))
+        // Look for the specific section that contains the contiguous query to show in snippet
+        const matchSection = item.sections.find((sec) =>
+          sec.norm.includes(normalizedQuery)
         );
         if (matchSection) {
           matchingSnippet =
