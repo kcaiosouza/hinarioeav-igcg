@@ -10,6 +10,7 @@ export default function HinosScreen() {
         data={MOCK_HINOS}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <HinoListItem hino={item} />}
+        keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
           <View className="p-4 bg-gray-50 border-b border-gray-200">
             <Text className="text-sm text-gray-500">
