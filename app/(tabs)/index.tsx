@@ -1,31 +1,23 @@
-import { StyleSheet } from 'react-native';
+import React from 'react';
+import { View, FlatList, Text } from 'react-native';
+import { MOCK_HINOS } from '../../data/mockHinos';
+import { HinoListItem } from '../../components/hino/HinoListItem';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
-
-export default function TabOneScreen() {
+export default function HinosScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+    <View className="flex-1 bg-white">
+      <FlatList
+        data={MOCK_HINOS}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <HinoListItem hino={item} />}
+        ListHeaderComponent={
+          <View className="p-4 bg-gray-50 border-b border-gray-200">
+            <Text className="text-sm text-gray-500">
+              Total de hinos disponíveis: {MOCK_HINOS.length}
+            </Text>
+          </View>
+        }
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
