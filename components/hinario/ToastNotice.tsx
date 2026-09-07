@@ -241,13 +241,13 @@ const styles = StyleSheet.create({
   suggestionTitle: {
     fontFamily: THEME_FONTS.inter.medium,
     fontSize: 13,
-    color: THEME_COLORS.goldSoft,
+    color: THEME_COLORS.sage,
     lineHeight: 18,
   },
   actionBtn: {
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: THEME_COLORS.goldSoft,
+    borderColor: THEME_COLORS.sage,
     borderRadius: 100,
     paddingVertical: 6,
     paddingHorizontal: 14,
@@ -258,6 +258,6 @@ const styles = StyleSheet.create({
   actionBtnText: {
     fontFamily: THEME_FONTS.inter.semiBold,
     fontSize: 12,
-    color: THEME_COLORS.goldSoft,
+    color: THEME_COLORS.sage,
   },
 });
