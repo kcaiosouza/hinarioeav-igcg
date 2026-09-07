@@ -287,9 +287,6 @@ export default function HinoDetailScreen() {
       bookName,
     });
     setIsFavorite(result.isFav);
-    Toast.show(
-      result.isFav ? 'Hino adicionado aos favoritos!' : 'Hino removido dos favoritos'
-    );
   };
 
   const handleOpenSheetMusic = () => {

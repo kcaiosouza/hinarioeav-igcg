@@ -16,7 +16,6 @@ import {
   removeFavorite,
   subscribeFavorites,
 } from '../services/favoritesService';
-import { Toast } from '../components/ui/Toast';
 
 export default function FavoritesScreen() {
   const router = useRouter();
@@ -60,7 +59,6 @@ export default function FavoritesScreen() {
   const handleRemoveFavorite = async (id: string) => {
     const updated = await removeFavorite(id);
     setFavorites(updated);
-    Toast.show('Hino removido dos favoritos');
   };
 
   return (
