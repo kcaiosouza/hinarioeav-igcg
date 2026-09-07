@@ -57,6 +57,14 @@ export default function MainScreen() {
     setCurrentNumber((prev) => prev.slice(0, -1));
   };
 
+  const handleSelectHymn = (number: string, bookKey: BookKey) => {
+    const title = books[bookKey]?.data[number] ?? '';
+    router.push({
+      pathname: '/hino/[id]',
+      params: { id: number, book: bookKey, title },
+    });
+  };
+
   const handleSearch = () => {
     const result = searchHinario(books, activeKey, currentNumber);
     if (result.type === 'empty') {
@@ -66,24 +74,24 @@ export default function MainScreen() {
         message: result.message,
       });
       setSearchResult(null);
-    } else {
+    } else if (result.type === 'found') {
+      setToast(null);
+      setSearchResult(null);
+      handleSelectHymn(result.number, result.bookKey);
+    } else if (result.type === 'suggestion') {
       setToast(null);
       setSearchResult(result);
     }
   };
 
-  const handleSelectHymn = (number: string, bookKey: BookKey) => {
-    const title = books[bookKey]?.data[number] ?? '';
-    router.push({
-      pathname: '/hino/[id]',
-      params: { id: number, book: bookKey, title },
-    });
-  };
-
   const handleGoToBook = (bookKey: BookKey) => {
     setActiveKey(bookKey);
     const result = searchHinario(books, bookKey, currentNumber);
-    if (result.type === 'empty') {
+    if (result.type === 'found') {
+      setToast(null);
+      setSearchResult(null);
+      handleSelectHymn(result.number, result.bookKey);
+    } else if (result.type === 'empty') {
       setToast({
         visible: true,
         bookName: result.bookName,
