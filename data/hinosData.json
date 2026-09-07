@@ -9908,5 +9908,18 @@
         "Tua glória, Tua glória,\nTua glória faz-nos um.\nNessa glória, nessa glória,\nNessa glória somos todos um."
       ]
     }
+  },
+  "diversos": {
+    "1": {
+      "id": "1",
+      "numero": 1,
+      "titulo": "Hino Exemplo Diversos",
+      "categoria": "Diversos",
+      "estrofes": [
+        "Primeira estrofe do hino de exemplo da seção Diversos.",
+        "Segunda estrofe com mais louvor e gratidão."
+      ],
+      "coro": "Coro do hino de exemplo."
+    }
   }
 }
