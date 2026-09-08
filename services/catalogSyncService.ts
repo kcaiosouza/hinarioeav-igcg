@@ -107,7 +107,16 @@ export async function checkAndSyncCatalog(options?: { force?: boolean }): Promis
       }
     });
 
-    const downloadedFile = await task.downloadAsync();
+    let downloadedFile;
+    try {
+      downloadedFile = await task.downloadAsync();
+    } finally {
+      if (typeof (task as any).release === 'function') {
+        try {
+          (task as any).release();
+        } catch {}
+      }
+    }
     if (!downloadedFile || !downloadedFile.exists) {
       throw new Error('Arquivo baixado nao existe');
     }
