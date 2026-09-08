@@ -16,6 +16,7 @@ import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
 import {
   checkAndSyncCatalog,
   getCurrentCatalogVersion,
+  isCatalogUpdateAvailable,
   catalogSyncEvents,
 } from '../../services/catalogSyncService';
 
@@ -46,36 +47,39 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
   const [showModal, setShowModal] = useState(visible);
   const [catalogVersion, setCatalogVersion] = useState<string>('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [hasUpdate, setHasUpdate] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
+  const refreshStatus = () => {
     getCurrentCatalogVersion()
       .then((ver) => {
         if (ver) setCatalogVersion(ver);
       })
       .catch(() => {});
 
+    isCatalogUpdateAvailable()
+      .then((updateAvailable) => {
+        setHasUpdate(updateAvailable);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshStatus();
+
     return catalogSyncEvents.subscribe((_ratio, active) => {
       setIsSyncing(active);
       if (!active) {
-        getCurrentCatalogVersion()
-          .then((ver) => {
-            if (ver) setCatalogVersion(ver);
-          })
-          .catch(() => {});
+        refreshStatus();
       }
     });
   }, []);
 
   useEffect(() => {
     if (visible) {
-      getCurrentCatalogVersion()
-        .then((ver) => {
-          if (ver) setCatalogVersion(ver);
-        })
-        .catch(() => {});
+      refreshStatus();
     }
   }, [visible]);
 
@@ -149,6 +153,11 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
     handleClose(() => {
       void checkAndSyncCatalog({ force: true });
     });
+  };
+
+  const handleCheckAlreadyUpdated = () => {
+    if (isSyncing) return;
+    void checkAndSyncCatalog({ notifyIfUpToDate: true });
   };
 
   const displayVersion = catalogVersion
@@ -285,35 +294,53 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
                 <Text style={styles.versionValue}>{displayVersion}</Text>
               </View>
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={isSyncing ? 'Sincronizando catálogo' : 'Sincronizar catálogo de hinos'}
-                disabled={isSyncing}
-                onPress={handleSync}
-                style={({ pressed }) => [
-                  styles.syncButton,
-                  isSyncing && styles.syncButtonDisabled,
-                  pressed && !isSyncing && styles.syncButtonPressed,
-                ]}
-              >
-                <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-                  <Path
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    stroke={isSyncing ? THEME_COLORS.mutedDim : THEME_COLORS.goldSoft}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </Svg>
-                <Text
-                  style={[
-                    styles.syncButtonText,
-                    isSyncing && styles.syncButtonTextDisabled,
+              {isSyncing ? (
+                <View style={styles.syncStatusRow}>
+                  <Text style={styles.syncStatusText}>Sincronizando catálogo...</Text>
+                </View>
+              ) : hasUpdate ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Atualizar catálogo de hinos"
+                  onPress={handleSync}
+                  style={({ pressed }) => [
+                    styles.syncButton,
+                    pressed && styles.syncButtonPressed,
                   ]}
                 >
-                  {isSyncing ? 'Sincronizando...' : 'Sincronizar hinos'}
-                </Text>
-              </Pressable>
+                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                    <Path
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      stroke={THEME_COLORS.goldSoft}
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                  <Text style={styles.syncButtonText}>Atualizar hinos</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Catálogo atualizado"
+                  onPress={handleCheckAlreadyUpdated}
+                  style={({ pressed }) => [
+                    styles.upToDateRow,
+                    pressed && styles.upToDateRowPressed,
+                  ]}
+                >
+                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                    <Path
+                      d="M20 6L9 17l-5-5"
+                      stroke={THEME_COLORS.goldSoft}
+                      strokeWidth={2.2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                  <Text style={styles.upToDateText}>Catálogo atualizado</Text>
+                </Pressable>
+              )}
             </View>
             <Text style={styles.footerCredits}>Desenvolvido com 💚</Text>
             <Text style={styles.footerChurch}>Igreja Em Campina Grande - PB</Text>
@@ -441,9 +468,47 @@ const styles = StyleSheet.create({
     color: THEME_COLORS.mutedDim,
   },
   versionValue: {
-    fontFamily: THEME_FONTS.inter.medium,
+    fontFamily: THEME_FONTS.inter.regular,
     fontSize: 12,
+    color: THEME_COLORS.mutedDim,
+  },
+  upToDateRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: 'rgba(92, 118, 80, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(92, 118, 80, 0.25)',
+  },
+  upToDateRowPressed: {
+    backgroundColor: 'rgba(92, 118, 80, 0.22)',
+  },
+  upToDateText: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 13,
     color: THEME_COLORS.goldSoft,
+  },
+  syncStatusRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: THEME_COLORS.surface,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
+  },
+  syncStatusText: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 13,
+    color: THEME_COLORS.mutedDim,
   },
   syncButton: {
     width: '100%',

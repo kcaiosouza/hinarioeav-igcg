@@ -52,8 +52,34 @@ export async function getCurrentCatalogVersion(): Promise<string> {
   return bundledVersion.version;
 }
 
-export async function checkAndSyncCatalog(options?: { force?: boolean }): Promise<void> {
-  if (isSyncing) return;
+export async function isCatalogUpdateAvailable(): Promise<boolean> {
+  try {
+    const currentVersion = await getCurrentCatalogVersion();
+    const versionUrl = `${CATALOG_CONFIG.BASE_URL}${CATALOG_CONFIG.VERSION_PATH}?_t=${Date.now()}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CATALOG_CONFIG.CHECK_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(versionUrl, { signal: controller.signal });
+      if (response.ok) {
+        const remoteMeta = (await response.json()) as CatalogVersionMetadata;
+        if (remoteMeta?.version) {
+          return isNewerVersion(remoteMeta.version, currentVersion);
+        }
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch {}
+  return false;
+}
+
+export async function checkAndSyncCatalog(options?: {
+  force?: boolean;
+  notifyIfUpToDate?: boolean;
+}): Promise<boolean> {
+  if (isSyncing) return false;
   isSyncing = true;
 
   try {
@@ -71,16 +97,27 @@ export async function checkAndSyncCatalog(options?: { force?: boolean }): Promis
       }
     } catch {
       // Falha de rede ou timeout: sai silenciosamente mantendo dados locais
-      return;
+      if (options?.notifyIfUpToDate) {
+        Toast.show('O catálogo já está atualizado');
+      }
+      return false;
     } finally {
       clearTimeout(timeoutId);
     }
 
-    if (!remoteMeta?.version) return;
+    if (!remoteMeta?.version) {
+      if (options?.notifyIfUpToDate) {
+        Toast.show('O catálogo já está atualizado');
+      }
+      return false;
+    }
 
     const hasNewer = isNewerVersion(remoteMeta.version, currentVersion);
     if (!hasNewer && !options?.force) {
-      return;
+      if (options?.notifyIfUpToDate) {
+        Toast.show('O catálogo já está atualizado');
+      }
+      return false;
     }
 
     // Inicia download com barra de progresso ativa
@@ -151,9 +188,11 @@ export async function checkAndSyncCatalog(options?: { force?: boolean }): Promis
     }, 400);
 
     Toast.show(`Catálogo de hinos atualizado (v${remoteMeta.version})`);
+    return true;
   } catch (error) {
     // Garante que a barra de progresso suma em caso de erro silencioso
     catalogSyncEvents.notify(0, false);
+    return false;
   } finally {
     isSyncing = false;
   }
