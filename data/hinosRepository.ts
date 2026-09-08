@@ -1,9 +1,45 @@
 import hinosData from './hinosData.json';
 import { BookKey } from '../types/hinario';
 import { Hino } from '../types/hino';
+import { validateCatalogJson } from '../services/catalogVersionUtils';
 
-type HinosDataStructure = Record<string, Record<string, Hino>>;
-const typedData = hinosData as unknown as HinosDataStructure;
+export type HinosDataStructure = Record<string, Record<string, Hino>>;
+
+let typedData: HinosDataStructure = hinosData as unknown as HinosDataStructure;
+const listeners = new Set<() => void>();
+
+export function subscribeToCatalogUpdates(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function reloadCatalogWithData(newData: HinosDataStructure): void {
+  typedData = newData;
+  for (const listener of listeners) {
+    try {
+      listener();
+    } catch (err) {
+      console.warn('Erro ao notificar listener do catalogo:', err);
+    }
+  }
+}
+
+export async function initCatalogFromStorage(): Promise<void> {
+  try {
+    const { File, Paths } = await import('expo-file-system');
+    const localFile = new File(Paths.document, 'hinosData.json');
+    if (localFile.exists) {
+      const text = await localFile.text();
+      if (validateCatalogJson(text)) {
+        typedData = JSON.parse(text) as HinosDataStructure;
+      }
+    }
+  } catch (error) {
+    // Falha silenciosa: continua usando typedData embutido do bundle
+  }
+}
 
 export function getHino(bookKey: string, numberOrId: string | number): Hino | null {
   const key = String(numberOrId);
