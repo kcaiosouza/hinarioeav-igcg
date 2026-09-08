@@ -197,3 +197,25 @@ export async function checkAndSyncCatalog(options?: {
     isSyncing = false;
   }
 }
+
+/**
+ * Função utilitária para testes/demonstração visual:
+ * Simula o ciclo completo de download com TopProgressBar e Toast.
+ */
+export function simulateCatalogDownload(targetVersion = '1.0.1'): void {
+  catalogSyncEvents.notify(0.05, true);
+  let progress = 0.05;
+  const timer = setInterval(() => {
+    progress += 0.12;
+    if (progress >= 1) {
+      clearInterval(timer);
+      catalogSyncEvents.notify(1, true);
+      setTimeout(() => {
+        catalogSyncEvents.notify(1, false);
+      }, 450);
+      Toast.show(`Catálogo de hinos atualizado (v${targetVersion})`);
+    } else {
+      catalogSyncEvents.notify(progress, true);
+    }
+  }, 200);
+}

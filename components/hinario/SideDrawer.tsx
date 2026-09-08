@@ -17,6 +17,7 @@ import {
   checkAndSyncCatalog,
   getCurrentCatalogVersion,
   isCatalogUpdateAvailable,
+  simulateCatalogDownload,
   catalogSyncEvents,
 } from '../../services/catalogSyncService';
 
@@ -289,10 +290,19 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
           <View style={styles.footer}>
             <View style={styles.divider} />
             <View style={styles.syncSection}>
-              <View style={styles.versionRow}>
+              <Pressable
+                accessibilityLabel="Versão do catálogo"
+                delayLongPress={600}
+                onLongPress={() => {
+                  handleClose(() => {
+                    simulateCatalogDownload('1.0.1');
+                  });
+                }}
+                style={styles.versionRow}
+              >
                 <Text style={styles.versionLabel}>Catálogo</Text>
                 <Text style={styles.versionValue}>{displayVersion}</Text>
-              </View>
+              </Pressable>
 
               {isSyncing ? (
                 <View style={styles.syncStatusRow}>
