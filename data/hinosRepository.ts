@@ -33,7 +33,7 @@ export async function initCatalogFromStorage(): Promise<void> {
     if (localFile.exists) {
       const text = await localFile.text();
       if (validateCatalogJson(text)) {
-        typedData = JSON.parse(text) as HinosDataStructure;
+        reloadCatalogWithData(JSON.parse(text) as HinosDataStructure);
       }
     }
   } catch (error) {

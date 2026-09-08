@@ -8,6 +8,11 @@ import {
   subscribeToCatalogUpdates,
   initCatalogFromStorage,
 } from '../hinosRepository';
+import hinosData from '../hinosData.json';
+
+test.after(() => {
+  reloadCatalogWithData(hinosData as any);
+});
 
 test('hinosRepository deve permitir atualizacao dinamica via reloadCatalogWithData e notificar listeners', () => {
   let notified = false;
