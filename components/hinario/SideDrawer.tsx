@@ -13,6 +13,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
+import {
+  checkAndSyncCatalog,
+  getCurrentCatalogVersion,
+  catalogSyncEvents,
+} from '../../services/catalogSyncService';
 
 export interface SideDrawerProps {
   visible: boolean;
@@ -39,9 +44,40 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(visible);
+  const [catalogVersion, setCatalogVersion] = useState<string>('');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    getCurrentCatalogVersion()
+      .then((ver) => {
+        if (ver) setCatalogVersion(ver);
+      })
+      .catch(() => {});
+
+    return catalogSyncEvents.subscribe((_ratio, active) => {
+      setIsSyncing(active);
+      if (!active) {
+        getCurrentCatalogVersion()
+          .then((ver) => {
+            if (ver) setCatalogVersion(ver);
+          })
+          .catch(() => {});
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (visible) {
+      getCurrentCatalogVersion()
+        .then((ver) => {
+          if (ver) setCatalogVersion(ver);
+        })
+        .catch(() => {});
+    }
+  }, [visible]);
 
   useEffect(() => {
     if (visible) {
@@ -107,6 +143,17 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
       });
     }
   };
+
+  const handleSync = () => {
+    if (isSyncing) return;
+    handleClose(() => {
+      void checkAndSyncCatalog({ force: true });
+    });
+  };
+
+  const displayVersion = catalogVersion
+    ? (catalogVersion.startsWith('v') ? catalogVersion : `v${catalogVersion}`)
+    : 'v1.0.0';
 
   // Swipe left to close panel
   const panResponder = useRef(
@@ -229,9 +276,45 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
             })}
           </View>
 
-          {/* Institutional Footer */}
+          {/* Institutional & Sync Footer */}
           <View style={styles.footer}>
             <View style={styles.divider} />
+            <View style={styles.syncSection}>
+              <View style={styles.versionRow}>
+                <Text style={styles.versionLabel}>Catálogo</Text>
+                <Text style={styles.versionValue}>{displayVersion}</Text>
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={isSyncing ? 'Sincronizando catálogo' : 'Sincronizar catálogo de hinos'}
+                disabled={isSyncing}
+                onPress={handleSync}
+                style={({ pressed }) => [
+                  styles.syncButton,
+                  isSyncing && styles.syncButtonDisabled,
+                  pressed && !isSyncing && styles.syncButtonPressed,
+                ]}
+              >
+                <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    stroke={isSyncing ? THEME_COLORS.mutedDim : THEME_COLORS.goldSoft}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+                <Text
+                  style={[
+                    styles.syncButtonText,
+                    isSyncing && styles.syncButtonTextDisabled,
+                  ]}
+                >
+                  {isSyncing ? 'Sincronizando...' : 'Sincronizar hinos'}
+                </Text>
+              </Pressable>
+            </View>
             <Text style={styles.footerCredits}>Desenvolvido com 💚</Text>
             <Text style={styles.footerChurch}>Igreja Em Campina Grande - PB</Text>
           </View>
@@ -340,6 +423,54 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: THEME_COLORS.line,
     marginBottom: 12,
+  },
+  syncSection: {
+    width: '100%',
+    marginBottom: 14,
+    gap: 8,
+  },
+  versionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+  },
+  versionLabel: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 12,
+    color: THEME_COLORS.mutedDim,
+  },
+  versionValue: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 12,
+    color: THEME_COLORS.goldSoft,
+  },
+  syncButton: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: THEME_COLORS.surface,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
+  },
+  syncButtonPressed: {
+    backgroundColor: THEME_COLORS.surfaceRaised,
+  },
+  syncButtonDisabled: {
+    opacity: 0.6,
+  },
+  syncButtonText: {
+    fontFamily: THEME_FONTS.inter.medium,
+    fontSize: 13,
+    color: THEME_COLORS.cream,
+  },
+  syncButtonTextDisabled: {
+    color: THEME_COLORS.mutedDim,
   },
   footerCredits: {
     fontFamily: THEME_FONTS.inter.medium,

@@ -52,7 +52,7 @@ export function TopProgressBar() {
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    width: `${Math.min(100, Math.max(0, progress.value * 100))}%`,
+    transform: [{ scaleX: Math.min(1, Math.max(0, progress.value)) }],
     opacity: opacity.value,
   }));
 
@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   bar: {
+    width: '100%',
     height: '100%',
     backgroundColor: THEME_COLORS.goldSoft,
     shadowColor: THEME_COLORS.gold,
@@ -83,5 +84,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 3,
     elevation: 4,
+    transformOrigin: 'left',
   },
 });

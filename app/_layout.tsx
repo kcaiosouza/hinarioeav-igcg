@@ -35,7 +35,7 @@ export default function RootLayout() {
     (async () => {
       try {
         await initCatalogFromStorage();
-        checkAndSyncCatalog();
+        await checkAndSyncCatalog();
       } catch (err) {
         // Silently preserve offline bundled catalog
       }
