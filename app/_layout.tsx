@@ -15,6 +15,9 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { THEME_COLORS } from '../constants/theme';
+import { TopProgressBar } from '../components/ui/TopProgressBar';
+import { initCatalogFromStorage } from '../data/hinosRepository';
+import { checkAndSyncCatalog } from '../services/catalogSyncService';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,6 +32,13 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    (async () => {
+      await initCatalogFromStorage();
+      checkAndSyncCatalog();
+    })();
+  }, []);
+
+  useEffect(() => {
     if (loaded || error) {
       SplashScreen.hideAsync();
     }
@@ -41,6 +51,7 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="light" />
+      <TopProgressBar />
       <Stack
         screenOptions={{
           headerShown: false,
