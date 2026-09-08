@@ -55,7 +55,6 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="light" />
-      <TopProgressBar />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -85,6 +84,7 @@ export default function RootLayout() {
         />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
+      <TopProgressBar />
     </>
   );
 }

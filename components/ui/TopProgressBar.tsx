@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +11,7 @@ import { THEME_COLORS } from '../../constants/theme';
 import { catalogSyncEvents } from '../../services/catalogSyncService';
 
 export function TopProgressBar() {
+  const insets = useSafeAreaInsets();
   const [visible, setVisible] = useState(false);
   const progress = useSharedValue(0);
   const opacity = useSharedValue(0);
@@ -23,14 +25,14 @@ export function TopProgressBar() {
       }
       if (active) {
         setVisible(true);
-        opacity.value = withTiming(1, { duration: 200 });
+        opacity.value = withTiming(1, { duration: 180 });
         progress.value = withTiming(ratio, {
           duration: 250,
           easing: Easing.out(Easing.quad),
         });
       } else {
         progress.value = withTiming(1, { duration: 150 });
-        opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+        opacity.value = withTiming(0, { duration: 350 }, (finished) => {
           if (finished) {
             progress.value = 0;
           }
@@ -38,7 +40,7 @@ export function TopProgressBar() {
         hideTimerRef.current = setTimeout(() => {
           setVisible(false);
           hideTimerRef.current = null;
-        }, 400);
+        }, 450);
       }
     });
   }, []);
@@ -52,14 +54,14 @@ export function TopProgressBar() {
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scaleX: Math.min(1, Math.max(0, progress.value)) }],
+    width: `${Math.min(100, Math.max(0, progress.value * 100))}%`,
     opacity: opacity.value,
   }));
 
   if (!visible) return null;
 
   return (
-    <View style={styles.container} pointerEvents="none">
+    <View style={[styles.container, { top: insets.top }]} pointerEvents="none">
       <Animated.View style={[styles.bar, animatedStyle]} />
     </View>
   );
@@ -71,19 +73,18 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 3,
-    zIndex: 99999,
-    backgroundColor: 'transparent',
+    height: 3.5,
+    zIndex: 999999,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    elevation: 20,
   },
   bar: {
-    width: '100%',
     height: '100%',
     backgroundColor: THEME_COLORS.goldSoft,
-    shadowColor: THEME_COLORS.gold,
+    shadowColor: '#fff',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.8,
-    shadowRadius: 3,
-    elevation: 4,
-    transformOrigin: 'left',
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+    elevation: 20,
   },
 });

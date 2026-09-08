@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Easing,
   Modal,
   PanResponder,
   Pressable,
@@ -17,7 +18,6 @@ import {
   checkAndSyncCatalog,
   getCurrentCatalogVersion,
   isCatalogUpdateAvailable,
-  simulateCatalogDownload,
   catalogSyncEvents,
 } from '../../services/catalogSyncService';
 
@@ -52,6 +52,35 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
 
   const slideAnim = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let animation: Animated.CompositeAnimation | null = null;
+    if (isSyncing) {
+      spinAnim.setValue(0);
+      animation = Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 900,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      animation.start();
+    } else {
+      spinAnim.setValue(0);
+    }
+    return () => {
+      if (animation) {
+        animation.stop();
+      }
+    };
+  }, [isSyncing]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const refreshStatus = () => {
     getCurrentCatalogVersion()
@@ -151,9 +180,7 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
 
   const handleSync = () => {
     if (isSyncing) return;
-    handleClose(() => {
-      void checkAndSyncCatalog({ force: true });
-    });
+    void checkAndSyncCatalog({ force: true });
   };
 
   const handleCheckAlreadyUpdated = () => {
@@ -290,67 +317,68 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
           <View style={styles.footer}>
             <View style={styles.divider} />
             <View style={styles.syncSection}>
-              <Pressable
-                accessibilityLabel="Versão do catálogo"
-                delayLongPress={600}
-                onLongPress={() => {
-                  handleClose(() => {
-                    simulateCatalogDownload('1.0.1');
-                  });
-                }}
-                style={styles.versionRow}
-              >
+              <View style={styles.versionRow}>
                 <Text style={styles.versionLabel}>Catálogo</Text>
-                <Text style={styles.versionValue}>{displayVersion}</Text>
-              </Pressable>
-
-              {isSyncing ? (
-                <View style={styles.syncStatusRow}>
-                  <Text style={styles.syncStatusText}>Sincronizando catálogo...</Text>
-                </View>
-              ) : hasUpdate ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Atualizar catálogo de hinos"
-                  onPress={handleSync}
+                  accessibilityLabel={
+                    isSyncing
+                      ? 'Sincronizando catálogo de hinos'
+                      : hasUpdate
+                      ? 'Atualização disponível. Toque para baixar novo catálogo'
+                      : 'Catálogo de hinos atualizado'
+                  }
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={hasUpdate ? handleSync : handleCheckAlreadyUpdated}
+                  disabled={isSyncing}
                   style={({ pressed }) => [
-                    styles.syncButton,
-                    pressed && styles.syncButtonPressed,
+                    styles.versionBadge,
+                    pressed && !isSyncing && styles.versionBadgePressed,
                   ]}
                 >
-                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-                    <Path
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      stroke={THEME_COLORS.goldSoft}
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </Svg>
-                  <Text style={styles.syncButtonText}>Atualizar hinos</Text>
+                  <Text style={styles.versionValue}>{displayVersion}</Text>
+                  {isSyncing ? (
+                    <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                      <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                        <Path
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          stroke={THEME_COLORS.goldSoft}
+                          strokeWidth={2.2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </Svg>
+                    </Animated.View>
+                  ) : hasUpdate ? (
+                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"
+                        stroke={THEME_COLORS.goldSoft}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <Path
+                        d="M12 12v8m-3.5-3.5L12 20l3.5-3.5"
+                        stroke={THEME_COLORS.goldSoft}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </Svg>
+                  ) : (
+                    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M20 6L9 17l-5-5"
+                        stroke={THEME_COLORS.goldSoft}
+                        strokeWidth={2.4}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </Svg>
+                  )}
                 </Pressable>
-              ) : (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Catálogo atualizado"
-                  onPress={handleCheckAlreadyUpdated}
-                  style={({ pressed }) => [
-                    styles.upToDateRow,
-                    pressed && styles.upToDateRowPressed,
-                  ]}
-                >
-                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-                    <Path
-                      d="M20 6L9 17l-5-5"
-                      stroke={THEME_COLORS.goldSoft}
-                      strokeWidth={2.2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </Svg>
-                  <Text style={styles.upToDateText}>Catálogo atualizado</Text>
-                </Pressable>
-              )}
+              </View>
             </View>
             <Text style={styles.footerCredits}>Desenvolvido com 💚</Text>
             <Text style={styles.footerChurch}>Igreja Em Campina Grande - PB</Text>
@@ -463,88 +491,34 @@ const styles = StyleSheet.create({
   },
   syncSection: {
     width: '100%',
-    marginBottom: 14,
-    gap: 8,
+    marginBottom: 12,
   },
   versionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 2,
+    paddingVertical: 2,
   },
   versionLabel: {
     fontFamily: THEME_FONTS.inter.regular,
     fontSize: 12,
     color: THEME_COLORS.mutedDim,
   },
+  versionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 6,
+  },
+  versionBadgePressed: {
+    opacity: 0.6,
+  },
   versionValue: {
     fontFamily: THEME_FONTS.inter.regular,
     fontSize: 12,
-    color: THEME_COLORS.mutedDim,
-  },
-  upToDateRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 9,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: 'rgba(92, 118, 80, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(92, 118, 80, 0.25)',
-  },
-  upToDateRowPressed: {
-    backgroundColor: 'rgba(92, 118, 80, 0.22)',
-  },
-  upToDateText: {
-    fontFamily: THEME_FONTS.inter.medium,
-    fontSize: 13,
-    color: THEME_COLORS.goldSoft,
-  },
-  syncStatusRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 9,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: THEME_COLORS.surface,
-    borderWidth: 1,
-    borderColor: THEME_COLORS.line,
-  },
-  syncStatusText: {
-    fontFamily: THEME_FONTS.inter.medium,
-    fontSize: 13,
-    color: THEME_COLORS.mutedDim,
-  },
-  syncButton: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 9,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: THEME_COLORS.surface,
-    borderWidth: 1,
-    borderColor: THEME_COLORS.line,
-  },
-  syncButtonPressed: {
-    backgroundColor: THEME_COLORS.surfaceRaised,
-  },
-  syncButtonDisabled: {
-    opacity: 0.6,
-  },
-  syncButtonText: {
-    fontFamily: THEME_FONTS.inter.medium,
-    fontSize: 13,
-    color: THEME_COLORS.cream,
-  },
-  syncButtonTextDisabled: {
     color: THEME_COLORS.mutedDim,
   },
   footerCredits: {
