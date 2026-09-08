@@ -13,9 +13,14 @@ export function TopProgressBar() {
   const [visible, setVisible] = useState(false);
   const progress = useSharedValue(0);
   const opacity = useSharedValue(0);
+  const hideTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return catalogSyncEvents.subscribe((ratio, active) => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
       if (active) {
         setVisible(true);
         opacity.value = withTiming(1, { duration: 200 });
@@ -30,9 +35,20 @@ export function TopProgressBar() {
             progress.value = 0;
           }
         });
-        setTimeout(() => setVisible(false), 400);
+        hideTimerRef.current = setTimeout(() => {
+          setVisible(false);
+          hideTimerRef.current = null;
+        }, 400);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+    };
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

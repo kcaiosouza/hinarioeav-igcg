@@ -33,8 +33,12 @@ export default function RootLayout() {
 
   useEffect(() => {
     (async () => {
-      await initCatalogFromStorage();
-      checkAndSyncCatalog();
+      try {
+        await initCatalogFromStorage();
+        checkAndSyncCatalog();
+      } catch (err) {
+        // Silently preserve offline bundled catalog
+      }
     })();
   }, []);
 
