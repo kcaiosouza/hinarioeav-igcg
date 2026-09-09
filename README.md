@@ -36,13 +36,13 @@ O app foi concebido principalmente pensando nos usuários de dispositivos Apple,
 
 O app reúne os quatro livros do hinário da EAV:
 
-| Chave | Nome             | Descrição                                    |
-| ----- | ---------------- | -------------------------------------------- |
-| `H`   | **Hinos**        | Hinário principal da Irmandade               |
-| `C`   | **Cânticos**     | Cânticos complementares                      |
-| `S`   | **Suplemento**   | Suplemento ao hinário                        |
-| `N`   | **Hinário Novo** | Novo hinário em implantação _(100/1100)_     |
-| `D`   | **Diversos**     | Hinos avulsos e especiais (acesso via busca) |
+| Chave | Nome | Descrição |
+|-------|------|-----------|
+| `H` | **Hinos** | Hinário principal da Irmandade |
+| `C` | **Cânticos** | Cânticos complementares |
+| `S` | **Suplemento** | Suplemento ao hinário |
+| `N` | **Hinário Novo** | Novo hinário em implantação *(396/1100)* |
+| `D` | **Diversos** | Hinos avulsos e especiais (acesso via busca) |
 
 ---
 

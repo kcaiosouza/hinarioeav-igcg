@@ -31,8 +31,8 @@ def run_checks():
 
     # Novo section check
     novo = data["novo"]
-    assert len(novo) == 294, f"novo count expected 294, got {len(novo)}"
-    print(f"novo count: 294 entries (197 previous + 97 new). OK.")
+    assert len(novo) == 396, f"novo count expected 396, got {len(novo)}"
+    print(f"novo count: 396 entries (299 from main + 97 from 300-400). OK.")
 
     # Check that keys are ordered numerically
     keys_as_ints = [int(k) for k in novo.keys()]
