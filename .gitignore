@@ -41,3 +41,8 @@ debug.log
 # generated native folders
 /ios
 /android
+
+# Python
+__pycache__/
+*.pyc
+
