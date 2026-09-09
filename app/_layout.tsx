@@ -15,6 +15,9 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { THEME_COLORS } from '../constants/theme';
+import { TopProgressBar } from '../components/ui/TopProgressBar';
+import { initCatalogFromStorage } from '../data/hinosRepository';
+import { checkAndSyncCatalog } from '../services/catalogSyncService';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,6 +30,17 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await initCatalogFromStorage();
+        await checkAndSyncCatalog();
+      } catch (err) {
+        // Silently preserve offline bundled catalog
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (loaded || error) {
@@ -70,6 +84,7 @@ export default function RootLayout() {
         />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
+      <TopProgressBar />
     </>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Easing,
   Modal,
   PanResponder,
   Pressable,
@@ -13,6 +14,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
+import {
+  checkAndSyncCatalog,
+  getCurrentCatalogVersion,
+  isCatalogUpdateAvailable,
+  catalogSyncEvents,
+} from '../../services/catalogSyncService';
 
 export interface SideDrawerProps {
   visible: boolean;
@@ -39,9 +46,72 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(visible);
+  const [catalogVersion, setCatalogVersion] = useState<string>('');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [hasUpdate, setHasUpdate] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
+  const spinAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let animation: Animated.CompositeAnimation | null = null;
+    if (isSyncing) {
+      spinAnim.setValue(0);
+      animation = Animated.loop(
+        Animated.timing(spinAnim, {
+          toValue: 1,
+          duration: 900,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      animation.start();
+    } else {
+      spinAnim.setValue(0);
+    }
+    return () => {
+      if (animation) {
+        animation.stop();
+      }
+    };
+  }, [isSyncing]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const refreshStatus = () => {
+    getCurrentCatalogVersion()
+      .then((ver) => {
+        if (ver) setCatalogVersion(ver);
+      })
+      .catch(() => {});
+
+    isCatalogUpdateAvailable()
+      .then((updateAvailable) => {
+        setHasUpdate(updateAvailable);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshStatus();
+
+    return catalogSyncEvents.subscribe((_ratio, active) => {
+      setIsSyncing(active);
+      if (!active) {
+        refreshStatus();
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (visible) {
+      refreshStatus();
+    }
+  }, [visible]);
 
   useEffect(() => {
     if (visible) {
@@ -107,6 +177,20 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
       });
     }
   };
+
+  const handleSync = () => {
+    if (isSyncing) return;
+    void checkAndSyncCatalog({ force: true });
+  };
+
+  const handleCheckAlreadyUpdated = () => {
+    if (isSyncing) return;
+    void checkAndSyncCatalog({ notifyIfUpToDate: true });
+  };
+
+  const displayVersion = catalogVersion
+    ? (catalogVersion.startsWith('v') ? catalogVersion : `v${catalogVersion}`)
+    : 'v1.0.0';
 
   // Swipe left to close panel
   const panResponder = useRef(
@@ -229,9 +313,73 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
             })}
           </View>
 
-          {/* Institutional Footer */}
+          {/* Institutional & Sync Footer */}
           <View style={styles.footer}>
             <View style={styles.divider} />
+            <View style={styles.syncSection}>
+              <View style={styles.versionRow}>
+                <Text style={styles.versionLabel}>Catálogo</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isSyncing
+                      ? 'Sincronizando catálogo de hinos'
+                      : hasUpdate
+                      ? 'Atualização disponível. Toque para baixar novo catálogo'
+                      : 'Catálogo de hinos atualizado'
+                  }
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={hasUpdate ? handleSync : handleCheckAlreadyUpdated}
+                  disabled={isSyncing}
+                  style={({ pressed }) => [
+                    styles.versionBadge,
+                    pressed && !isSyncing && styles.versionBadgePressed,
+                  ]}
+                >
+                  <Text style={styles.versionValue}>{displayVersion}</Text>
+                  {isSyncing ? (
+                    <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                      <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                        <Path
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          stroke={THEME_COLORS.goldSoft}
+                          strokeWidth={2.2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </Svg>
+                    </Animated.View>
+                  ) : hasUpdate ? (
+                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"
+                        stroke={THEME_COLORS.goldSoft}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <Path
+                        d="M12 12v8m-3.5-3.5L12 20l3.5-3.5"
+                        stroke={THEME_COLORS.goldSoft}
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </Svg>
+                  ) : (
+                    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M20 6L9 17l-5-5"
+                        stroke={THEME_COLORS.goldSoft}
+                        strokeWidth={2.4}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </Svg>
+                  )}
+                </Pressable>
+              </View>
+            </View>
             <Text style={styles.footerCredits}>Desenvolvido com 💚</Text>
             <Text style={styles.footerChurch}>Igreja Em Campina Grande - PB</Text>
           </View>
@@ -340,6 +488,38 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: THEME_COLORS.line,
     marginBottom: 12,
+  },
+  syncSection: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  versionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+  },
+  versionLabel: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 12,
+    color: THEME_COLORS.mutedDim,
+  },
+  versionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 6,
+  },
+  versionBadgePressed: {
+    opacity: 0.6,
+  },
+  versionValue: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 12,
+    color: THEME_COLORS.mutedDim,
   },
   footerCredits: {
     fontFamily: THEME_FONTS.inter.medium,
