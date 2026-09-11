@@ -134,9 +134,9 @@ Ao finalizar todos os lotes de hinos de uma demanda:
    - Deletar os PDFs convertidos em `assets/pdfs/convert-to-text/*.pdf`.
    - `feat(hinario-novo): mesclar hinos XXX a YYY no hinosData.json e remover PDFs`
 5. **Atualizar Versão do Catálogo (`data/catalogVersion.json`):**
-   - Incrementar **2 patches** na versão (ex.: `1.0.2` -> `1.0.4`).
+   - Incrementar **1 patch** na versão (ex.: `1.0.3` -> `1.0.4`).
    - Atualizar data ISO e descrição.
-   - `feat(catalog): subir 2 patches de versao para X.Y.Z apos adicao de hinos`
+   - `feat(catalog): subir 1 patch de versao para X.Y.Z apos adicao de hinos`
 6. **Atualizar `README.md`:**
    - Atualizar a contagem do Hinário Novo na tabela de Hinários Disponíveis (ex.: `(700/1100)`).
    - Atualizar a contagem no Roadmap.
