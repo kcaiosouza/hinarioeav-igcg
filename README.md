@@ -41,7 +41,7 @@ O app reúne os quatro livros do hinário da EAV:
 | `H` | **Hinos** | Hinário principal da Irmandade |
 | `C` | **Cânticos** | Cânticos complementares |
 | `S` | **Suplemento** | Suplemento ao hinário |
-| `N` | **Hinário Novo** | Novo hinário em implantação *(396/1100)* |
+| `N` | **Hinário Novo** | Novo hinário em implantação *(700/1100)* |
 | `D` | **Diversos** | Hinos avulsos e especiais (acesso via busca) |
 
 ---
@@ -106,7 +106,7 @@ O app reúne os quatro livros do hinário da EAV:
 ### 🚧 Em Desenvolvimento
 
 ```
-[ ] Hinário Novo (book key: "novo") — (100/1100)
+[ ] Hinário Novo (book key: "novo") — (700/1100)
     - Cadastro completo das letras dos hinos do Hinário Novo
     - Integração com o seletor de livros já existente
     - Sugestão de livro alternativo funcionando (infra pronta)
