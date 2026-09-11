@@ -125,6 +125,10 @@ O app reúne os quatro livros do hinário da EAV:
 ### 🔮 Planejado (Futuro)
 
 ```
+[ ] Busca semântica avançada com IA (RAG)
+    - Pesquisa inteligente por temas, assuntos ou tópicos bíblicos (ex: "hinos sobre consolo nas aflições", "graça e justificação")
+    - Apoio à preparação de reuniões: recomendação de hinos alinhados com a mensagem ministrada
+    - Localização por contexto e intenção semântica, mesmo sem recordar título, número ou trecho exato da letra
 [ ] Partituras para todos os hinos dos livros já implementados
 [ ] Compartilhamento de hinos via texto/link
 [ ] Sincronização com o IGCGMusic para reprodução integrada
