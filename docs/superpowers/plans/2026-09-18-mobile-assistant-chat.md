@@ -65,7 +65,7 @@
   export function sendAssistantQuery(params: SendAssistantQueryParams): Promise<{ answer: string; hymns: SuggestedHymn[] }>;
   ```
 
-- [ ] **Step 1: Implement `services/assistantService.ts`**
+- [x] **Step 1: Implement `services/assistantService.ts`**
 
 Create `services/assistantService.ts`:
 
@@ -227,7 +227,7 @@ export async function sendAssistantQuery({
 }
 ```
 
-- [ ] **Step 2: Create test script to verify connection to production**
+- [x] **Step 2: Create test script to verify connection to production**
 
 Create `scripts/test_assistant_service.js`:
 
@@ -264,7 +264,7 @@ assert.ok(result.hymns.length > 0, 'Should have received hymn suggestions');
 console.log('All assistant service tests passed successfully!');
 ```
 
-- [ ] **Step 3: Run test script and typecheck**
+- [x] **Step 3: Run test script and typecheck**
 
 Run:
 ```powershell
@@ -273,7 +273,7 @@ npm run typecheck
 ```
 Expected: PASS (`All assistant service tests passed successfully!`).
 
-- [ ] **Step 4: Commit Task 1**
+- [x] **Step 4: Commit Task 1**
 
 ```powershell
 git add services/assistantService.ts scripts/test_assistant_service.js
@@ -291,7 +291,7 @@ git commit -m "feat(assistant): adicionar servico de cliente para a API do assis
 - Updates `MENU_ITEMS` array with `assistant` key, `Assistente do Hinário` label, `✨` icon, `/assistant` route, and `IA` badge.
 - Updates layout styling to render the right-aligned soft-gold pill badge.
 
-- [ ] **Step 1: Update `components/hinario/SideDrawer.tsx`**
+- [x] **Step 1: Update `components/hinario/SideDrawer.tsx`**
 
 1. In `components/hinario/SideDrawer.tsx`, extend `MenuItem` interface:
 ```typescript
@@ -385,7 +385,7 @@ badgePillText: {
 },
 ```
 
-- [ ] **Step 2: Run typecheck to verify SideDrawer changes**
+- [x] **Step 2: Run typecheck to verify SideDrawer changes**
 
 Run:
 ```powershell
@@ -393,7 +393,7 @@ npm run typecheck
 ```
 Expected: PASS with 0 errors.
 
-- [ ] **Step 3: Commit Task 2**
+- [x] **Step 3: Commit Task 2**
 
 ```powershell
 git add components/hinario/SideDrawer.tsx
@@ -418,7 +418,7 @@ git commit -m "feat(drawer): adicionar item do assistente com badge IA no menu l
   ```
 - `TypingBubble`: renders 3 bouncing dots indicator.
 
-- [ ] **Step 1: Implement `components/assistant/HymnCard.tsx`**
+- [x] **Step 1: Implement `components/assistant/HymnCard.tsx`**
 
 Create `components/assistant/HymnCard.tsx`:
 
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-- [ ] **Step 2: Implement `components/assistant/TypingBubble.tsx`**
+- [x] **Step 2: Implement `components/assistant/TypingBubble.tsx`**
 
 Create `components/assistant/TypingBubble.tsx`:
 
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 
 Run:
 ```powershell
@@ -623,7 +623,7 @@ npm run typecheck
 ```
 Expected: PASS with 0 errors.
 
-- [ ] **Step 4: Commit Task 3**
+- [x] **Step 4: Commit Task 3**
 
 ```powershell
 git add components/assistant/HymnCard.tsx components/assistant/TypingBubble.tsx
@@ -648,7 +648,7 @@ git commit -m "feat(assistant): criar componentes de card de hino e indicador de
   - Hymn card press navigation to `/hino/[id]`.
   - Gentle in-chat error bubble on failures.
 
-- [ ] **Step 1: Register route in `app/_layout.tsx`**
+- [x] **Step 1: Register route in `app/_layout.tsx`**
 
 In `app/_layout.tsx`, add the Stack.Screen for `assistant`:
 
@@ -662,7 +662,7 @@ In `app/_layout.tsx`, add the Stack.Screen for `assistant`:
 />
 ```
 
-- [ ] **Step 2: Implement `app/assistant.tsx`**
+- [x] **Step 2: Implement `app/assistant.tsx`**
 
 Create `app/assistant.tsx`:
 
@@ -1247,7 +1247,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-- [ ] **Step 3: Run typecheck to verify route and layout**
+- [x] **Step 3: Run typecheck to verify route and layout**
 
 Run:
 ```powershell
@@ -1255,7 +1255,7 @@ npm run typecheck
 ```
 Expected: PASS with 0 errors.
 
-- [ ] **Step 4: Commit Task 4**
+- [x] **Step 4: Commit Task 4**
 
 ```powershell
 git add app/assistant.tsx app/_layout.tsx
@@ -1269,7 +1269,7 @@ git commit -m "feat(assistant): implementar tela de chat do assistente com strea
 **Files:**
 - All modified files
 
-- [ ] **Step 1: Run full typescript check**
+- [x] **Step 1: Run full typescript check**
 
 Run:
 ```powershell
@@ -1277,7 +1277,7 @@ npm run typecheck
 ```
 Expected: PASS with 0 errors.
 
-- [ ] **Step 2: Verify git status is clean**
+- [x] **Step 2: Verify git status is clean**
 
 Run:
 ```powershell
