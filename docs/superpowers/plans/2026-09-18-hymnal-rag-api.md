@@ -13,7 +13,7 @@
 * **Host Directory:** Serverless code, libraries, and index live in `C:\igcg-website`.
 * **Zero External Dependencies:** Use Node.js native `fetch` and built-in standard APIs to keep `C:\igcg-website` deployable with zero dependency overhead.
 * **English JSON Standard:** All request/response body, header, and query parameter keys MUST be in English (`query`, `sessionId`, `stream`, `limit`, `history`, `hymns`, `answer`, `error`).
-* **AI Security Guardrails:** Max query length 300 characters, heuristic pre-flight injection filter, XML delimiter fencing (`<user_query>`), `temperature: 0.2`, `max_tokens: 350`, IP rate limit (5 req/min).
+* **AI Security Guardrails:** Max query length 1000 characters, heuristic pre-flight injection filter, XML delimiter fencing (`<user_query>`), `temperature: 0.2`, `max_tokens: 350`, IP rate limit (5 req/min).
 * **Streaming Protocol:** SSE with event names `hymns` (immediate metadata array), `text-delta` (incremental tokens), and `done` (completion).
 * **No Mobile App Changes:** Restrict all implementation strictly to the server-side and scripts. Do NOT modify the mobile app codebase in this phase.
 
@@ -49,7 +49,7 @@ const empty = sanitizeQuery('   ');
 assert.equal(empty.valid, false);
 assert.equal(empty.error, 'QUERY_EMPTY');
 
-const tooLong = sanitizeQuery('a'.repeat(301));
+const tooLong = sanitizeQuery('a'.repeat(1001));
 assert.equal(tooLong.valid, false);
 assert.equal(tooLong.error, 'QUERY_TOO_LONG');
 
@@ -112,7 +112,7 @@ export function sanitizeQuery(rawQuery) {
     return { valid: false, sanitized: '', error: 'QUERY_EMPTY' };
   }
 
-  if (sanitized.length > 300) {
+  if (sanitized.length > 1000) {
     return { valid: false, sanitized: '', error: 'QUERY_TOO_LONG' };
   }
 
@@ -554,7 +554,7 @@ assert.equal(resGet.jsonData.error.code, 'METHOD_NOT_ALLOWED');
 const reqLong = {
   method: 'POST',
   headers: { 'x-forwarded-for': '127.0.0.1' },
-  body: { query: 'a'.repeat(305) }
+  body: { query: 'a'.repeat(1005) }
 };
 const resLong = createMockRes();
 await handleAskAi(reqLong, resLong);

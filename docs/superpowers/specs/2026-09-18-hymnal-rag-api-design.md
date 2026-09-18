@@ -19,7 +19,7 @@ The goal of this project is to build a low-cost, ultra-fast, and secure RAG (Ret
   * `stream: true`: Server-Sent Events (SSE) emitting `event: hymns` (structured JSON for immediate UI card rendering) followed by `event: text-delta` (real-time conversational typing tokens).
   * `stream: false`: Standard `application/json` payload for programmatic/test consumers.
 * **Stateless Session & Conversation History:** Client-provided `history` array with sliding window. Hymns previously recommended in the session are excluded from vector ranking to enable queries like *"Sugira mais"* without duplication or cross-user interference.
-* **AI Security & Anti-Prompt Injection:** Input sanitization, length caps (300 chars), pre-flight heuristic filtering, XML delimited fencing (`<user_query>`), hardened system prompt, deterministic model temperature (`0.2`), max token bounds (`350`), and IP rate limiting.
+* **AI Security & Anti-Prompt Injection:** Input sanitization, length caps (1000 chars), pre-flight heuristic filtering, XML delimited fencing (`<user_query>`), hardened system prompt, deterministic model temperature (`0.2`), max token bounds (`350`), and IP rate limiting.
 * **Standardization:** All JSON keys, headers, and query parameters are standardized in English.
 
 ---
@@ -44,7 +44,7 @@ Client (Mobile / Web / Curl)
   ▼
 1. Security & Pre-flight Validation
    ├─► Check IP Rate Limit (5 req/min/IP)
-   ├─► Validate query length (<= 300 characters)
+   ├─► Validate query length (<= 1000 characters)
    └─► Fast heuristic check for prompt-injection keywords
   ▼
 2. Vector Search (In-Memory)
@@ -111,7 +111,7 @@ For each hymn, the embedding text combines metadata and lyrics:
 ### 4.2 Request Body Schema
 ```typescript
 interface AskAiRequest {
-  query: string;               // Required. User search or conversation query (max 300 chars)
+  query: string;               // Required. User search or conversation query (max 1000 chars)
   sessionId?: string;          // Optional. Client session identifier for tracking/metrics
   stream?: boolean;            // Optional. Default: false. If true, returns SSE
   limit?: number;              // Optional. Default: 3. Max: 5
@@ -198,7 +198,7 @@ interface AskAiRequest {
 To prevent prompt injection, model jailbreaks, and token budget abuse, the endpoint implements multi-layered defensive controls:
 
 1. **Input Length & Character Constraints:**
-   * Maximum length: 300 characters for `query`.
+   * Maximum length: 1000 characters for `query`.
    * Strips control characters, non-printable unicode, and excessive whitespace.
 2. **Pre-Flight Heuristic Filter (Zero API Cost):**
    * Rejects requests containing common adversarial signatures (e.g. `ignore previous instructions`, `system prompt`, `you are now`, `DAN mode`, `developer mode`) before calling any external API.
