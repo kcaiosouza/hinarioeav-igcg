@@ -31,7 +31,7 @@
   - `isPromptInjection(text: string): boolean`
   - `checkRateLimit(ip: string, limit?: number, windowMs?: number): { allowed: boolean, remaining: number }`
 
-- [ ] **Step 1: Write the failing test for security functions**
+- [x] **Step 1: Write the failing test for security functions**
 
 Create `C:\igcg-website\tests\security.test.js`:
 
@@ -76,7 +76,7 @@ assert.equal(checkRateLimit(testIp, 5, 60000).allowed, false);
 console.log('All security tests passed successfully!');
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```powershell
@@ -84,7 +84,7 @@ node C:\igcg-website\tests\security.test.js
 ```
 Expected: FAIL (module `../lib/security.js` not found).
 
-- [ ] **Step 3: Implement minimal security module**
+- [x] **Step 3: Implement minimal security module**
 
 Create `C:\igcg-website\lib\security.js`:
 
@@ -166,7 +166,7 @@ export function resetRateLimits() {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```powershell
@@ -188,7 +188,7 @@ Expected: PASS (`All security tests passed successfully!`).
   - `cosineSimilarity(vecA: number[], vecB: number[]): number`
   - `searchHymns(params: { queryVector: number[], hymns: Array<HymnItem>, limit?: number, excludedHymnIds?: string[] }): Array<ScoredHymn>`
 
-- [ ] **Step 1: Write the failing test for vector search**
+- [x] **Step 1: Write the failing test for vector search**
 
 Create `C:\igcg-website\tests\vectorSearch.test.js`:
 
@@ -240,7 +240,7 @@ assert.equal(deduplicated[1].id, 'novo_3');
 console.log('All vector search tests passed successfully!');
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```powershell
@@ -248,7 +248,7 @@ node C:\igcg-website\tests\vectorSearch.test.js
 ```
 Expected: FAIL (module `../lib/vectorSearch.js` not found).
 
-- [ ] **Step 3: Implement minimal vector search module**
+- [x] **Step 3: Implement minimal vector search module**
 
 Create `C:\igcg-website\lib\vectorSearch.js`:
 
@@ -324,7 +324,7 @@ export function searchHymns({ queryVector, hymns, limit = 3, excludedHymnIds = [
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```powershell
@@ -344,7 +344,7 @@ Expected: PASS (`All vector search tests passed successfully!`).
 - Consumes: `C:\IGCGDev\igcghinario\data\hinosData.json`
 - Produces: `C:\igcg-website\data\hinos_embeddings.json`
 
-- [ ] **Step 1: Write embedding generator script**
+- [x] **Step 1: Write embedding generator script**
 
 Create `C:\IGCGDev\igcghinario\scripts\generate_hinos_embeddings.js`:
 
@@ -488,7 +488,7 @@ main().catch((err) => {
 });
 ```
 
-- [ ] **Step 2: Run script in dry-run mode to verify formatting and output**
+- [x] **Step 2: Run script in dry-run mode to verify formatting and output**
 
 Run:
 ```powershell
@@ -498,7 +498,7 @@ Expected:
 `Total hymns prepared for embedding: 1830`
 `Wrote mock embeddings (1830 items) to: C:\igcg-website\data\hinos_embeddings.json`
 
-- [ ] **Step 3: Verify output file exists and schema is intact**
+- [x] **Step 3: Verify output file exists and schema is intact**
 
 Run:
 ```powershell
@@ -509,7 +509,7 @@ Expected:
 `Vector len: 512`
 `Sample: hinos_1 ...`
 
-- [ ] **Step 4: Commit generator script**
+- [x] **Step 4: Commit generator script**
 
 ```powershell
 git add scripts/generate_hinos_embeddings.js
@@ -533,7 +533,7 @@ git commit -m "feat(rag): adicionar script de geracao de embeddings dos hinos co
 - Produces:
   - Route handler supporting both `stream: true` (SSE) and `stream: false` (JSON)
 
-- [ ] **Step 1: Write the failing handler test**
+- [x] **Step 1: Write the failing handler test**
 
 Create `C:\igcg-website\tests\handler.test.js`:
 
@@ -588,7 +588,7 @@ function createMockRes() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```powershell
@@ -596,7 +596,7 @@ node C:\igcg-website\tests\handler.test.js
 ```
 Expected: FAIL (module `../api/hinario/ask-ai.js` not found).
 
-- [ ] **Step 3: Implement Vercel Serverless Function**
+- [x] **Step 3: Implement Vercel Serverless Function**
 
 Create `C:\igcg-website\api\hinario\ask-ai.js`:
 
@@ -846,7 +846,7 @@ export async function handleAskAi(req, res) {
 export default handleAskAi;
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```powershell
@@ -861,7 +861,7 @@ Expected: PASS (`Handler validation tests passed successfully!`).
 **Files:**
 - Create: `C:\igcg-website\tests\e2e.test.js`
 
-- [ ] **Step 1: Write E2E test covering simulation of search, deduplication and non-stream JSON**
+- [x] **Step 1: Write E2E test covering simulation of search, deduplication and non-stream JSON**
 
 Create `C:\igcg-website\tests\e2e.test.js`:
 
@@ -910,7 +910,7 @@ const reqDedup = {
 console.log('E2E validation checks completed successfully!');
 ```
 
-- [ ] **Step 2: Run E2E test**
+- [x] **Step 2: Run E2E test**
 
 Run:
 ```powershell
@@ -918,6 +918,6 @@ node C:\igcg-website\tests\e2e.test.js
 ```
 Expected: PASS (`E2E validation checks completed successfully!`).
 
-- [ ] **Step 3: Update documentation in spec**
+- [x] **Step 3: Update documentation in spec**
 
 Confirm all test cases in `docs/superpowers/specs/2026-09-18-hymnal-rag-api-design.md` are covered by implementation.
