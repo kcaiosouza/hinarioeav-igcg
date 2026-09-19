@@ -110,9 +110,9 @@ const styles = StyleSheet.create({
   snippet: {
     fontFamily: THEME_FONTS.inter.regular,
     fontSize: 13,
-    color: THEME_COLORS.mutedDim,
+    color: 'rgba(218, 215, 205, 0.85)',
     marginTop: 4,
     fontStyle: 'italic',
-    lineHeight: 18,
+    lineHeight: 18.5,
   },
 });
