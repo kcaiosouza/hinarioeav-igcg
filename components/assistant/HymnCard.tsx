@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../../constants/theme';
@@ -9,16 +9,39 @@ export interface HymnCardProps {
   onPress: (hymn: SuggestedHymn) => void;
 }
 
+function getBookDisplayName(section?: string): string {
+  const key = (section || '').toLowerCase().trim();
+  switch (key) {
+    case 'novo':
+      return 'Hinário Novo';
+    case 'hinos':
+    case 'antigo':
+      return 'Hinos';
+    case 'canticos':
+    case 'cantico':
+      return 'Cânticos';
+    case 'suplemento':
+      return 'Suplemento';
+    case 'diversos':
+    case 'diverso':
+      return 'Diversos';
+    default:
+      return 'Hino';
+  }
+}
+
 export const HymnCard = React.memo(function HymnCard({ hymn, onPress }: HymnCardProps) {
-  const cleanSnippet = (hymn.firstStanza || '')
-    .split('\n')
-    .slice(0, 2)
-    .join(' · ');
+  const bookName = useMemo(() => getBookDisplayName(hymn.section), [hymn.section]);
+
+  const snippet = useMemo(() => {
+    if (!hymn.firstStanza) return undefined;
+    return hymn.firstStanza.replace(/\r?\n/g, ' ').trim();
+  }, [hymn.firstStanza]);
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Hino ${hymn.number} ${hymn.title}`}
+      accessibilityLabel={`${bookName} nº ${hymn.number} ${hymn.title}`}
       onPress={() => onPress(hymn)}
       style={({ pressed }) => [
         styles.card,
@@ -26,12 +49,9 @@ export const HymnCard = React.memo(function HymnCard({ hymn, onPress }: HymnCard
       ]}
     >
       <View style={styles.cardHeader}>
-        <View style={styles.badgeRow}>
-          <Text style={styles.musicNote}>🎵</Text>
-          <Text style={styles.badgeText}>
-            Hino {hymn.number}
-          </Text>
-        </View>
+        <Text style={styles.badge}>
+          {bookName} · nº {hymn.number}
+        </Text>
         <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
           <Path
             d="M5 2.5L9.5 7L5 11.5"
@@ -47,9 +67,9 @@ export const HymnCard = React.memo(function HymnCard({ hymn, onPress }: HymnCard
         {hymn.title}
       </Text>
 
-      {cleanSnippet ? (
-        <Text style={styles.stanza} numberOfLines={2}>
-          "{cleanSnippet}"
+      {snippet ? (
+        <Text style={styles.snippet} numberOfLines={2}>
+          {snippet}
         </Text>
       ) : null}
     </Pressable>
@@ -60,10 +80,11 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: THEME_COLORS.surfaceRaised,
     borderRadius: 14,
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: 'rgba(218, 215, 205, 0.12)',
+    borderColor: THEME_COLORS.line,
   },
   cardPressed: {
     backgroundColor: '#43684B',
@@ -75,34 +96,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  musicNote: {
-    fontSize: 13,
-  },
-  badgeText: {
-    fontFamily: THEME_FONTS.sansSemiBold,
+  badge: {
+    fontFamily: THEME_FONTS.inter.medium,
     fontSize: 12,
-    color: THEME_COLORS.goldSoft,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    color: THEME_COLORS.muted,
   },
   title: {
-    fontFamily: THEME_FONTS.serifSemiBold,
-    fontSize: 15,
+    fontFamily: THEME_FONTS.fraunces.semiBold,
+    fontSize: 16.5,
     color: THEME_COLORS.cream,
-    fontWeight: '600',
-    marginBottom: 4,
+    marginTop: 1,
   },
-  stanza: {
-    fontFamily: THEME_FONTS.sansRegular,
-    fontSize: 12.5,
-    lineHeight: 17,
-    color: THEME_COLORS.muted,
+  snippet: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 13,
+    color: THEME_COLORS.mutedDim,
+    marginTop: 4,
     fontStyle: 'italic',
+    lineHeight: 18,
   },
 });
