@@ -25,4 +25,10 @@ export const THEME_FONTS = {
     semiBold: 'Inter_600SemiBold',
     bold: 'Inter_700Bold',
   },
+  serifSemiBold: 'Fraunces_600SemiBold',
+  serifBold: 'Fraunces_700Bold',
+  sansRegular: 'Inter_400Regular',
+  sansMedium: 'Inter_500Medium',
+  sansSemiBold: 'Inter_600SemiBold',
+  sansBold: 'Inter_700Bold',
 } as const;

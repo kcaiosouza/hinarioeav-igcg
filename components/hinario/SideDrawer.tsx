@@ -34,12 +34,20 @@ interface MenuItem {
   label: string;
   icon: string;
   route: string;
+  badge?: string;
 }
 
 const MENU_ITEMS: MenuItem[] = [
   { key: 'hinario', label: 'Hinário', icon: '📖', route: '/' },
   { key: 'search', label: 'Buscar', icon: '🔍', route: '/search' },
   { key: 'favorites', label: 'Favoritos', icon: '⭐', route: '/favorites' },
+  {
+    key: 'assistant',
+    label: 'Assistente do Hinário',
+    icon: '✨',
+    route: '/assistant',
+    badge: 'IA',
+  },
 ];
 
 export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerProps) {
@@ -299,15 +307,22 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
                     pressed && styles.menuItemPressed,
                   ]}
                 >
-                  <Text style={styles.menuIcon}>{item.icon}</Text>
-                  <Text
-                    style={[
-                      styles.menuLabel,
-                      isActive && styles.menuLabelActive,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
+                  <View style={styles.menuItemLeft}>
+                    <Text style={styles.menuIcon}>{item.icon}</Text>
+                    <Text
+                      style={[
+                        styles.menuLabel,
+                        isActive && styles.menuLabelActive,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </View>
+                  {item.badge && (
+                    <View style={styles.badgePill}>
+                      <Text style={styles.badgePillText}>{item.badge}</Text>
+                    </View>
+                  )}
                 </Pressable>
               );
             })}
@@ -453,11 +468,32 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    justifyContent: 'space-between',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    marginBottom: 4,
     backgroundColor: 'transparent',
+  },
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  badgePill: {
+    backgroundColor: THEME_COLORS.goldSoft,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 100,
+    marginLeft: 8,
+  },
+  badgePillText: {
+    color: THEME_COLORS.ink,
+    fontFamily: THEME_FONTS.sansSemiBold,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   menuItemActive: {
     backgroundColor: THEME_COLORS.surface,

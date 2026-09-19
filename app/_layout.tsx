@@ -65,6 +65,13 @@ export default function RootLayout() {
         <Stack.Screen name="search" />
         <Stack.Screen name="favorites" />
         <Stack.Screen
+          name="assistant"
+          options={{
+            presentation: 'card',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
           name="hino/[id]"
           options={{
             presentation: 'card',
