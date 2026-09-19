@@ -34,12 +34,11 @@ export interface SendAssistantQueryParams {
   onError?: (error: Error) => void;
 }
 
-export const ASSISTANT_API_URL = 'https://igrejaemcampinagrande.com.br/api/hinario/ask-ai';
+export const ASSISTANT_API_URL = 'https://www.igrejaemcampinagrande.com.br/api/hinario/ask-ai';
 
 /**
  * Sends a query to the Hymnal AI Assistant via Axios with client-side typewriter streaming.
- * This guarantees 100% reliable responses on iOS (avoiding NSURLSession stream buffering freezes),
- * Android and Web, while still providing the smooth conversational typing effect.
+ * Uses the canonical www URL to completely eliminate 308 redirects on iOS NSURLSession.
  */
 export async function sendAssistantQuery({
   query,
@@ -58,8 +57,14 @@ export async function sendAssistantQuery({
     historyCount: history.length,
   });
 
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => {
+    console.warn('🤖 [AssistantService] ⚠️ Timeout de 20s atingido, abortando requisição...');
+    abortController.abort();
+  }, 20000);
+
   try {
-    console.log('🤖 [AssistantService] [2/5] Disparando axios.post (timeout: 30000ms)...');
+    console.log('🤖 [AssistantService] [2/5] Disparando axios.post (timeout: 20000ms)...');
     const response = await axios.post(
       ASSISTANT_API_URL,
       {
@@ -74,9 +79,12 @@ export async function sendAssistantQuery({
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        timeout: 30000,
+        timeout: 20000,
+        signal: abortController.signal,
       }
     );
+
+    clearTimeout(timeoutId);
 
     const elapsed = Date.now() - startTime;
     console.log(`🤖 [AssistantService] [3/5] Resposta recebida em ${elapsed}ms! Status HTTP: ${response.status}`);
@@ -112,6 +120,7 @@ export async function sendAssistantQuery({
     if (onDone) onDone();
     return { answer, hymns };
   } catch (err: any) {
+    clearTimeout(timeoutId);
     const elapsed = Date.now() - startTime;
     console.error(`🤖 [AssistantService] ❌ ERRO após ${elapsed}ms:`, {
       message: err.message,
