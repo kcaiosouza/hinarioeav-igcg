@@ -16,6 +16,7 @@ import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
 import { HymnCard } from '../components/assistant/HymnCard';
 import { TypingBubble } from '../components/assistant/TypingBubble';
+import { FormattedMessageText } from '../components/assistant/FormattedMessageText';
 import {
   ChatMessage,
   sendAssistantQuery,
@@ -47,6 +48,27 @@ export default function AssistantScreen() {
   const [isTyping, setIsTyping] = useState(false);
   const [statusText, setStatusText] = useState('Pronto para ajudar');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () => {
+      setKeyboardVisible(true);
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 80);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleBack = () => {
     router.back();
@@ -243,9 +265,7 @@ export default function AssistantScreen() {
       <View style={[styles.messageRow, isUser ? styles.rowUser : styles.rowAgent]}>
         <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAgent]}>
           {item.content ? (
-            <Text style={[styles.bubbleText, isUser ? styles.bubbleTextUser : styles.bubbleTextAgent]}>
-              {item.content}
-            </Text>
+            <FormattedMessageText content={item.content} isUser={isUser} />
           ) : null}
 
           {item.hymns && item.hymns.length > 0 ? (
@@ -323,8 +343,8 @@ export default function AssistantScreen() {
       {/* Messages List & Keyboard Avoiding */}
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <FlatList
           ref={flatListRef}
@@ -333,6 +353,7 @@ export default function AssistantScreen() {
           renderItem={renderMessageItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           ListFooterComponent={
             <>
               {isTyping && !messages.some((m) => m.isStreaming) ? (
@@ -360,7 +381,7 @@ export default function AssistantScreen() {
         />
 
         {/* Input Bar */}
-        <SafeAreaView edges={['bottom']} style={styles.inputSafeArea}>
+        <SafeAreaView edges={keyboardVisible ? [] : ['bottom']} style={styles.inputSafeArea}>
           <View style={styles.inputBar}>
             <View style={styles.inputPill}>
               <TextInput
