@@ -30,7 +30,7 @@
   - `isConceptualQuery(query: string): boolean`
   - `isCourtesyQuery(query: string): boolean`
 
-- [ ] **Step 1: Write unit tests for intent helpers**
+- [x] **Step 1: Write unit tests for intent helpers**
 
 Create `C:\igcg-website\tests\intentRouting.test.js`:
 
@@ -91,7 +91,7 @@ assert.equal(isCourtesyQuery('Hino 50'), false);
 console.log('All intent detection tests passed successfully!');
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```powershell
@@ -99,7 +99,7 @@ node C:\igcg-website\tests\intentRouting.test.js
 ```
 Expected: FAIL (functions not yet exported from `ask-ai.js`).
 
-- [ ] **Step 3: Implement helper functions in `C:\igcg-website\api\hinario\ask-ai.js`**
+- [x] **Step 3: Implement helper functions in `C:\igcg-website\api\hinario\ask-ai.js`**
 
 Add the helper functions to `api/hinario/ask-ai.js`:
 
@@ -161,7 +161,7 @@ export function isCourtesyQuery(query) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```powershell
@@ -191,11 +191,11 @@ Expected: PASS (`All intent detection tests passed successfully!`).
   - Otherwise (Default Thematic Search):
     - Runs vector search as usual, emits 2-3 cards, concludes with thematic CTA.
 
-- [ ] **Step 1: Update `handleAskAi` in `C:\igcg-website\api\hinario\ask-ai.js`**
+- [x] **Step 1: Update `handleAskAi` in `C:\igcg-website\api\hinario\ask-ai.js`**
 
 Implement the full multi-intent routing logic and update `SYSTEM_PROMPT`.
 
-- [ ] **Step 2: Run verification test script**
+- [x] **Step 2: Run verification test script**
 
 Test all 4 intents against the updated handler.
 
@@ -206,9 +206,9 @@ Test all 4 intents against the updated handler.
 **Files:**
 - Create: `C:\igcg-website\tests\intentsE2E.test.js`
 
-- [ ] **Step 1: Write E2E test verifying all 4 intent responses and card emissions**
+- [x] **Step 1: Write E2E test verifying all 4 intent responses and card emissions**
 
-- [ ] **Step 2: Run test suite**
+- [x] **Step 2: Run test suite**
 
 Run:
 ```powershell
@@ -217,7 +217,7 @@ node C:\igcg-website\tests\intentsE2E.test.js
 ```
 Expected: PASS with 0 errors.
 
-- [ ] **Step 3: Commit and Push**
+- [x] **Step 3: Commit and Push**
 
 ```powershell
 git add api/hinario/ask-ai.js
