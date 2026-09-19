@@ -90,7 +90,14 @@ export default function AssistantScreen() {
 
   const handleSend = async (queryText?: string) => {
     const textToSend = (queryText ?? inputText).trim();
-    if (!textToSend || isTyping) return;
+    console.log('📱 [AssistantUI] handleSend acionado:', { queryText, inputText, textToSend, isTyping });
+
+    if (!textToSend || isTyping) {
+      if (isTyping) {
+        console.warn('📱 [AssistantUI] Envio bloqueado: assistente já está ocupado (isTyping = true)');
+      }
+      return;
+    }
 
     setShowSuggestions(false);
     setInputText('');
@@ -121,6 +128,8 @@ export default function AssistantScreen() {
         suggestedHymnIds: m.hymns?.map((h) => h.id),
       }));
 
+    console.log('📱 [AssistantUI] Disparando sendAssistantQuery com historyCount =', historyPayload.length);
+
     let streamAnswer = '';
     let streamHymns: SuggestedHymn[] = [];
 
@@ -130,6 +139,7 @@ export default function AssistantScreen() {
         sessionId,
         history: historyPayload,
         onHymns: (hymns) => {
+          console.log('📱 [AssistantUI] onHymns callback recebido:', hymns.length, 'hinos');
           streamHymns = hymns;
           setStatusText('Digitando...');
           setMessages((prev) => {
@@ -155,6 +165,9 @@ export default function AssistantScreen() {
           scrollToBottom();
         },
         onDelta: (delta) => {
+          if (streamAnswer.length === 0) {
+            console.log('📱 [AssistantUI] Primeiro token de texto recebido via onDelta!');
+          }
           streamAnswer += delta;
           setStatusText('Digitando...');
           setMessages((prev) => {
@@ -180,6 +193,7 @@ export default function AssistantScreen() {
           scrollToBottom();
         },
         onDone: () => {
+          console.log('📱 [AssistantUI] onDone callback recebido! Finalizando streaming.');
           setIsTyping(false);
           setStatusText('Pronto para ajudar');
           setMessages((prev) =>
@@ -193,6 +207,7 @@ export default function AssistantScreen() {
         },
       });
     } catch (error: any) {
+      console.error('📱 [AssistantUI] ❌ Erro capturado no catch de handleSend:', error?.message, error);
       setIsTyping(false);
       setStatusText('Pronto para ajudar');
 

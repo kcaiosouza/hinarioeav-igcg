@@ -50,7 +50,16 @@ export async function sendAssistantQuery({
   onDone,
   onError,
 }: SendAssistantQueryParams): Promise<{ answer: string; hymns: SuggestedHymn[] }> {
+  const startTime = Date.now();
+  console.log('🤖 [AssistantService] [1/5] Preparando requisição...', {
+    url: ASSISTANT_API_URL,
+    query,
+    sessionId,
+    historyCount: history.length,
+  });
+
   try {
+    console.log('🤖 [AssistantService] [2/5] Disparando axios.post (timeout: 30000ms)...');
     const response = await axios.post(
       ASSISTANT_API_URL,
       {
@@ -69,17 +78,28 @@ export async function sendAssistantQuery({
       }
     );
 
+    const elapsed = Date.now() - startTime;
+    console.log(`🤖 [AssistantService] [3/5] Resposta recebida em ${elapsed}ms! Status HTTP: ${response.status}`);
+
     const data = response.data?.data || {};
     const answer: string = data.answer || '';
     const hymns: SuggestedHymn[] = data.hymns || [];
 
+    console.log('🤖 [AssistantService] [4/5] Dados extraídos:', {
+      hasAnswer: !!answer,
+      answerLength: answer.length,
+      hymnsCount: hymns.length,
+    });
+
     // 1. Deliver hymn cards immediately to render UI cards
     if (onHymns && hymns.length > 0) {
+      console.log(`🤖 [AssistantService] Entregando ${hymns.length} hinos via onHymns`);
       onHymns(hymns);
     }
 
     // 2. Smooth typewriter streaming effect in the client
     if (answer && onDelta) {
+      console.log('🤖 [AssistantService] [5/5] Iniciando typewriter via onDelta...');
       const tokens = answer.match(/\S+\s*/g) || [answer];
       for (const token of tokens) {
         onDelta(token);
@@ -88,9 +108,20 @@ export async function sendAssistantQuery({
       }
     }
 
+    console.log(`🤖 [AssistantService] ✅ Concluído com sucesso em ${Date.now() - startTime}ms`);
     if (onDone) onDone();
     return { answer, hymns };
   } catch (err: any) {
+    const elapsed = Date.now() - startTime;
+    console.error(`🤖 [AssistantService] ❌ ERRO após ${elapsed}ms:`, {
+      message: err.message,
+      name: err.name,
+      code: err.code,
+      status: err.response?.status,
+      responseData: err.response?.data,
+      isAxiosError: axios.isAxiosError(err),
+    });
+
     let message = 'Falha ao conectar com o assistente.';
     if (err.response?.data?.error?.message) {
       message = err.response.data.error.message;
