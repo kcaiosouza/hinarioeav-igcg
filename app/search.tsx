@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Keyboard,
@@ -15,180 +15,121 @@ import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
 import { getAllHymnsList } from '../data/hinosRepository';
-import { normalizeSearchText } from '../utils/textNormalize';
+import {
+  buildSearchCatalog,
+  filterAndScoreHymns,
+  ScoredHymnResult,
+  SearchHymnItem,
+} from '../utils/searchHymns';
 
-interface Section {
-  raw: string;
-  norm: string;
-}
+const PAGE_SIZE = 50;
 
-interface SearchItem {
-  id: string;
-  number: string;
-  title: string;
-  bookName: string;
-  bookKey: string;
-  category?: string;
-  snippet?: string;
-  defaultSnippet?: string;
-  normNumber: string;
-  normTitle: string;
-  normBook: string;
-  normLyrics: string;
-  sections: Section[];
-}
-
-const SearchItemCard = React.memo(function SearchItemCard({
-  item,
-  onSelect,
-}: {
-  item: SearchItem;
-  onSelect: (item: SearchItem) => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${item.bookName} ${item.number} ${item.title}`}
-      onPress={() => onSelect(item)}
-      style={({ pressed }) => [
-        styles.itemCard,
-        pressed && styles.itemCardPressed,
-      ]}
-    >
-      <View style={styles.itemHeader}>
-        <Text style={styles.itemBadge}>
-          {item.bookName} · nº {item.number}
-        </Text>
-        {item.category && (
-          <Text style={styles.itemCategory}>{item.category}</Text>
+const SearchItemCard = React.memo(
+  function SearchItemCard({
+    item,
+    onSelect,
+  }: {
+    item: ScoredHymnResult;
+    onSelect: (item: SearchHymnItem) => void;
+  }) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${item.bookName} ${item.number} ${item.title}`}
+        onPress={() => onSelect(item)}
+        style={({ pressed }) => [
+          styles.itemCard,
+          pressed && styles.itemCardPressed,
+        ]}
+      >
+        <View style={styles.itemHeader}>
+          <Text style={styles.itemBadge}>
+            {item.bookName} · nº {item.number}
+          </Text>
+          {item.category && (
+            <Text style={styles.itemCategory}>{item.category}</Text>
+          )}
+        </View>
+        <Text style={styles.itemTitle}>{item.title}</Text>
+        {item.snippet && (
+          <Text style={styles.itemSnippet}>{item.snippet}</Text>
         )}
-      </View>
-      <Text style={styles.itemTitle}>{item.title}</Text>
-      {item.snippet && (
-        <Text style={styles.itemSnippet}>{item.snippet}</Text>
-      )}
-    </Pressable>
-  );
-});
+      </Pressable>
+    );
+  },
+  (prev, next) => {
+    return (
+      prev.item.id === next.item.id &&
+      prev.item.bookKey === next.item.bookKey &&
+      prev.item.snippet === next.item.snippet &&
+      prev.item.title === next.item.title
+    );
+  }
+);
 
 export default function SearchScreen() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+  const [displayedCount, setDisplayedCount] = useState(PAGE_SIZE);
 
-  const dismissKeyboard = () => {
+  const dismissKeyboard = useCallback(() => {
     Keyboard.dismiss();
     inputRef.current?.blur();
-  };
-
-  // Build searchable index from real parsed hymns catalog
-  const catalog = useMemo<SearchItem[]>(() => {
-    const list = getAllHymnsList();
-    return list.map((hino) => {
-      const rawSections: string[] = [];
-      if (hino.estrofes) {
-        rawSections.push(...hino.estrofes);
-      }
-      if (hino.coro) {
-        rawSections.push(hino.coro);
-      }
-
-      const sections: Section[] = rawSections.map((raw) => ({
-        raw,
-        norm: normalizeSearchText(raw),
-      }));
-
-      const firstLyrics = hino.estrofes[0] || hino.coro || '';
-      const defaultSnippet = firstLyrics
-        ? firstLyrics.replace(/\r?\n/g, ' ').slice(0, 80) + '...'
-        : undefined;
-
-      const allLyrics = [hino.titulo, ...(hino.estrofes || []), hino.coro || ''].join(' ');
-
-      return {
-        id: hino.id,
-        number: String(hino.numero),
-        title: hino.titulo,
-        bookName: hino.categoria,
-        bookKey: hino.bookKey,
-        category: hino.categoria,
-        snippet: defaultSnippet,
-        defaultSnippet,
-        normNumber: normalizeSearchText(String(hino.numero)),
-        normTitle: normalizeSearchText(hino.titulo),
-        normBook: normalizeSearchText(hino.categoria),
-        normLyrics: normalizeSearchText(allLyrics),
-        sections,
-      };
-    });
   }, []);
 
+  // Catálogo pré-computado uma única vez
+  const catalog = useMemo<SearchHymnItem[]>(() => {
+    const list = getAllHymnsList();
+    return buildSearchCatalog(list);
+  }, []);
+
+  // Filtragem e pontuação executada em segundo plano via deferredQuery
   const filteredResults = useMemo(() => {
-    const normalizedQuery = normalizeSearchText(query);
-    if (!normalizedQuery) return catalog;
+    return filterAndScoreHymns(catalog, deferredQuery);
+  }, [catalog, deferredQuery]);
 
-    const scoredItems: Array<{ item: SearchItem; score: number }> = [];
+  // Sempre que o termo deferido mudar, reseta a paginação para o primeiro lote
+  useEffect(() => {
+    setDisplayedCount(PAGE_SIZE);
+  }, [deferredQuery]);
 
-    for (const item of catalog) {
-      let score = 0;
-      let matchingSnippet = item.defaultSnippet;
+  // Resultados paginados para renderização na FlatList
+  const visibleResults = useMemo(() => {
+    return filteredResults.slice(0, displayedCount);
+  }, [filteredResults, displayedCount]);
 
-      // Scoring rules (strict contiguous matching only):
-      // 1. Exact number match
-      if (item.normNumber === normalizedQuery) {
-        score = 100;
-      } else if (item.normNumber.startsWith(normalizedQuery)) {
-        score = 80;
-      } else if (item.normTitle === normalizedQuery) {
-        score = 90;
-      } else if (item.normTitle.includes(normalizedQuery)) {
-        score = 70;
-      } else if (item.normLyrics.includes(normalizedQuery)) {
-        score = 50;
-      } else if (item.normBook.includes(normalizedQuery)) {
-        score = 20;
+  const handleLoadMore = useCallback(() => {
+    setDisplayedCount((prev) => {
+      if (prev < filteredResults.length) {
+        return prev + PAGE_SIZE;
       }
-
-      if (score > 0) {
-        // Look for the specific section that contains the contiguous query to show in snippet
-        const matchSection = item.sections.find((sec) =>
-          sec.norm.includes(normalizedQuery)
-        );
-        if (matchSection) {
-          matchingSnippet =
-            matchSection.raw.replace(/\r?\n/g, ' ').slice(0, 80) + '...';
-        }
-
-        scoredItems.push({
-          item: {
-            ...item,
-            snippet: matchingSnippet,
-          },
-          score,
-        });
-      }
-    }
-
-    scoredItems.sort((a, b) => b.score - a.score || Number(a.item.number) - Number(b.item.number));
-    return scoredItems.map((entry) => entry.item);
-  }, [catalog, query]);
+      return prev;
+    });
+  }, [filteredResults.length]);
 
   const handleSelectHymn = useCallback(
-    (item: SearchItem) => {
+    (item: SearchHymnItem) => {
       dismissKeyboard();
       router.push({
         pathname: '/hino/[id]',
         params: { id: item.number, book: item.bookKey, title: item.title },
       });
     },
-    [router]
+    [dismissKeyboard, router]
   );
 
   const renderSearchItem = useCallback(
-    ({ item }: { item: SearchItem }) => (
+    ({ item }: { item: ScoredHymnResult }) => (
       <SearchItemCard item={item} onSelect={handleSelectHymn} />
     ),
     [handleSelectHymn]
+  );
+
+  const keyExtractor = useCallback(
+    (item: ScoredHymnResult) => `${item.bookKey}-${item.id}`,
+    []
   );
 
   return (
@@ -265,16 +206,18 @@ export default function SearchScreen() {
 
           {/* Results List */}
           <FlatList
-            data={filteredResults}
-            keyExtractor={(item, index) => `${item.bookKey}-${item.number}-${index}`}
+            data={visibleResults}
+            keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             initialNumToRender={15}
-            maxToRenderPerBatch={10}
+            maxToRenderPerBatch={15}
             windowSize={7}
             removeClippedSubviews={Platform.OS !== 'web'}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
             ListEmptyComponent={
               <Pressable style={styles.emptyContainer} onPress={dismissKeyboard}>
                 <Text style={styles.emptyTitle}>Nenhum hino encontrado</Text>
