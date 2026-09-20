@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
-import { getAllHymnsList } from '../data/hinosRepository';
+import { getAllHymnsList, subscribeToCatalogUpdates } from '../data/hinosRepository';
 import {
   buildSearchCatalog,
   filterAndScoreHymns,
@@ -59,6 +59,7 @@ const SearchItemCard = React.memo(
   },
   (prev, next) => {
     return (
+      prev.onSelect === next.onSelect &&
       prev.item.id === next.item.id &&
       prev.item.bookKey === next.item.bookKey &&
       prev.item.snippet === next.item.snippet &&
@@ -70,29 +71,39 @@ const SearchItemCard = React.memo(
 export default function SearchScreen() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
+  const flatListRef = useRef<FlatList<ScoredHymnResult>>(null);
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [displayedCount, setDisplayedCount] = useState(PAGE_SIZE);
+  const [catalogVersion, setCatalogVersion] = useState(0);
 
   const dismissKeyboard = useCallback(() => {
     Keyboard.dismiss();
     inputRef.current?.blur();
   }, []);
 
-  // Catálogo pré-computado uma única vez
+  // Invalida catálogo caso receba atualizações remotas de hinos
+  useEffect(() => {
+    return subscribeToCatalogUpdates(() => {
+      setCatalogVersion((v) => v + 1);
+    });
+  }, []);
+
+  // Catálogo pré-computado
   const catalog = useMemo<SearchHymnItem[]>(() => {
     const list = getAllHymnsList();
     return buildSearchCatalog(list);
-  }, []);
+  }, [catalogVersion]);
 
   // Filtragem e pontuação executada em segundo plano via deferredQuery
   const filteredResults = useMemo(() => {
     return filterAndScoreHymns(catalog, deferredQuery);
   }, [catalog, deferredQuery]);
 
-  // Sempre que o termo deferido mudar, reseta a paginação para o primeiro lote
+  // Sempre que o termo deferido mudar, reseta a paginação e a rolagem para o topo
   useEffect(() => {
     setDisplayedCount(PAGE_SIZE);
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [deferredQuery]);
 
   // Resultados paginados para renderização na FlatList
@@ -206,6 +217,7 @@ export default function SearchScreen() {
 
           {/* Results List */}
           <FlatList
+            ref={flatListRef}
             data={visibleResults}
             keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContent}
