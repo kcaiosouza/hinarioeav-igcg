@@ -29,8 +29,8 @@ test('getAdjacentHymn next a partir do hino 1 retorna hino 2', () => {
 test('canNavigate next no último hino retorna false', () => {
   assert.equal(canNavigate('hinos', 500, 'next'), false);
   assert.equal(getAdjacentHymn('hinos', 500, 'next'), null);
-  assert.equal(canNavigate('novo', 39, 'next'), false);
-  assert.equal(getAdjacentHymn('novo', 39, 'next'), null);
+  assert.equal(canNavigate('novo', 1100, 'next'), false);
+  assert.equal(getAdjacentHymn('novo', 1100, 'next'), null);
 });
 
 test('getAdjacentHymn retorna null para número inválido ou livro inexistente', () => {
