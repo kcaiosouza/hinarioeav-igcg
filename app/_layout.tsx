@@ -89,7 +89,7 @@ export default function RootLayout() {
             gestureEnabled: true,
           }}
         />
-        <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
+        <Stack.Screen name="+not-found" options={{ title: 'Página não encontrada' }} />
       </Stack>
       <TopProgressBar />
     </>

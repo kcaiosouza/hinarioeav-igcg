@@ -333,7 +333,7 @@ export default function HinoDetailScreen() {
         {
           text: "Ouvir Agora",
           onPress: () => {
-            Linking.openURL("https://beta.igcgmusic.com.br").catch((err) => {
+            Linking.openURL("https://igcgmusic.com.br").catch((err) => {
               console.error("Erro ao abrir IGCGMusic:", err);
             });
           },
