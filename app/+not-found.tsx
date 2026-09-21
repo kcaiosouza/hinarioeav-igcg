@@ -1,17 +1,20 @@
+import React from 'react';
 import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
-
-import { Text, View } from '@/components/Themed';
+import { StyleSheet, Text, View } from 'react-native';
+import { THEME_COLORS, THEME_FONTS } from '../constants/theme';
 
 export default function NotFoundScreen() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
+      <Stack.Screen options={{ title: 'Página não encontrada' }} />
       <View style={styles.container}>
-        <Text style={styles.title}>This screen doesn't exist.</Text>
+        <Text style={styles.title}>Página não encontrada</Text>
+        <Text style={styles.description}>
+          O hino ou conteúdo solicitado não foi encontrado.
+        </Text>
 
         <Link href="/" style={styles.link}>
-          <Text style={styles.linkText}>Go to home screen!</Text>
+          <Text style={styles.linkText}>Voltar ao início</Text>
         </Link>
       </View>
     </>
@@ -21,20 +24,36 @@ export default function NotFoundScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: THEME_COLORS.bg,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily: THEME_FONTS.fraunces.bold,
+    fontSize: 22,
+    color: THEME_COLORS.cream,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  description: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 15,
+    color: THEME_COLORS.muted,
+    textAlign: 'center',
+    marginBottom: 24,
   },
   link: {
-    marginTop: 15,
-    paddingVertical: 15,
+    backgroundColor: THEME_COLORS.surfaceRaised,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.line,
   },
   linkText: {
-    fontSize: 14,
-    color: '#2e78b7',
+    fontFamily: THEME_FONTS.inter.semiBold,
+    fontSize: 15,
+    color: THEME_COLORS.cream,
   },
 });
