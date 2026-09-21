@@ -406,20 +406,21 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
                 </Pressable>
               </View>
             </View>
+            <Text style={styles.footerCredits}>Desenvolvido com 💚</Text>
+            <Text style={styles.footerChurch}>Igreja Em Campina Grande - PB</Text>
             <Pressable
               accessibilityRole="link"
               accessibilityLabel="Política de Privacidade"
               onPress={handleOpenPrivacyPolicy}
-              hitSlop={6}
+              hitSlop={8}
               style={({ pressed }) => [
                 styles.privacyBtn,
                 pressed && styles.privacyBtnPressed,
               ]}
             >
+              <Text style={styles.privacyIcon}>ⓘ</Text>
               <Text style={styles.privacyBtnText}>Política de Privacidade</Text>
             </Pressable>
-            <Text style={styles.footerCredits}>Desenvolvido com 💚</Text>
-            <Text style={styles.footerChurch}>Igreja Em Campina Grande - PB</Text>
           </View>
         </Animated.View>
       </View>
@@ -594,18 +595,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   privacyBtn: {
-    paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 8,
+    paddingVertical: 4,
     paddingHorizontal: 8,
+    borderRadius: 6,
     alignSelf: 'center',
-    marginBottom: 6,
   },
   privacyBtnPressed: {
-    opacity: 0.7,
+    opacity: 0.6,
+  },
+  privacyIcon: {
+    fontSize: 12.5,
+    color: THEME_COLORS.mutedDim,
   },
   privacyBtnText: {
     fontFamily: THEME_FONTS.inter.regular,
     fontSize: 11.5,
-    color: THEME_COLORS.goldSoft,
+    color: THEME_COLORS.mutedDim,
     textDecorationLine: 'underline',
   },
 });
