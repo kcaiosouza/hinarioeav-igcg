@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
@@ -88,6 +89,34 @@ export default function AssistantScreen() {
     setStatusText('Pronto para ajudar');
     setIsTyping(false);
     setInputText('');
+  };
+
+  const handleShowInfo = () => {
+    Alert.alert(
+      'Sobre o Assistente do Hinário',
+      'O Assistente utiliza inteligência artificial para localizar hinos por temas, ocasiões ou sentimentos.\n\n• As respostas são geradas automaticamente e podem conter imprecisões.\n• Caso encontre alguma recomendação ou texto inadequado, utilize a opção "Sinalizar" na mensagem.',
+      [{ text: 'Entendi' }]
+    );
+  };
+
+  const handleReportMessage = (messageId: string) => {
+    Alert.alert(
+      'Sinalizar Mensagem',
+      'Deseja reportar esta resposta como imprecisa ou inadequada?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Reportar',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Obrigado pelo feedback',
+              'Seu relato foi registrado e ajudará a aprimorar as recomendações do hinário.'
+            );
+          },
+        },
+      ]
+    );
   };
 
   const scrollToBottom = () => {
@@ -260,6 +289,18 @@ export default function AssistantScreen() {
               ))}
             </View>
           ) : null}
+
+          {!isUser && !item.isStreaming && !item.isError && item.id !== 'greeting' && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Sinalizar resposta"
+              hitSlop={6}
+              onPress={() => handleReportMessage(item.id)}
+              style={({ pressed }) => [styles.reportBtn, pressed && styles.reportBtnPressed]}
+            >
+              <Text style={styles.reportBtnText}>Sinalizar</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     );
@@ -306,23 +347,47 @@ export default function AssistantScreen() {
           </View>
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Nova sessão"
-          hitSlop={10}
-          onPress={handleNewSession}
-          style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
-        >
-          <Svg width={17} height={17} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 005.64 5.64L1 10M23 14L18.36 18.36A9 9 0 013.51 15"
-              stroke={THEME_COLORS.cream}
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </Pressable>
+        <View style={styles.topBarActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sobre o Assistente"
+            hitSlop={10}
+            onPress={handleShowInfo}
+            style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+          >
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={1.8}
+              />
+              <Path
+                d="M12 16V12M12 8H12.01"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Nova sessão"
+            hitSlop={10}
+            onPress={handleNewSession}
+            style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+          >
+            <Svg width={17} height={17} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 005.64 5.64L1 10M23 14L18.36 18.36A9 9 0 013.51 15"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Pressable>
+        </View>
       </View>
 
       {/* Messages List & Keyboard Avoiding */}
@@ -403,6 +468,9 @@ export default function AssistantScreen() {
               </Svg>
             </Pressable>
           </View>
+          <Text style={styles.aiDisclaimer}>
+            O assistente utiliza inteligência artificial e pode cometer imprecisões.
+          </Text>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -597,5 +665,34 @@ const styles = StyleSheet.create({
   },
   sendBtnPressed: {
     transform: [{ scale: 0.94 }],
+  },
+  topBarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  reportBtn: {
+    alignSelf: 'flex-end',
+    marginTop: 6,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: 'rgba(218, 215, 205, 0.08)',
+  },
+  reportBtnPressed: {
+    backgroundColor: 'rgba(218, 215, 205, 0.16)',
+  },
+  reportBtnText: {
+    fontFamily: THEME_FONTS.sansRegular,
+    fontSize: 10.5,
+    color: THEME_COLORS.mutedDim,
+  },
+  aiDisclaimer: {
+    textAlign: 'center',
+    fontFamily: THEME_FONTS.sansRegular,
+    fontSize: 11,
+    color: THEME_COLORS.mutedDim,
+    paddingVertical: 4,
+    paddingHorizontal: 16,
   },
 });
