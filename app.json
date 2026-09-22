@@ -9,17 +9,23 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.igrejaemcampinagrande.hinarioeav",
-      "buildNumber": "1"
+      "bundleIdentifier": "br.com.igrejacg.hinarioeav",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleDisplayName": "Hinário EAV",
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIRequiresFullScreen": true
+      }
     },
     "android": {
-      "package": "br.com.igrejaemcampinagrande.hinarioeav",
+      "package": "br.com.igrejacg.hinarioeav",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#152c1d",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": []
     },
     "web": {
       "bundler": "metro",

@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Linking,
   Modal,
   PanResponder,
   Pressable,
@@ -10,6 +11,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
@@ -194,6 +196,15 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
   const handleCheckAlreadyUpdated = () => {
     if (isSyncing) return;
     void checkAndSyncCatalog({ notifyIfUpToDate: true });
+  };
+
+  const handleOpenPrivacyPolicy = async () => {
+    const url = 'https://www.igrejaemcampinagrande.com.br/politica-de-privacidade';
+    try {
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      Linking.openURL(url).catch(() => {});
+    }
   };
 
   const displayVersion = catalogVersion
@@ -397,6 +408,19 @@ export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerPr
             </View>
             <Text style={styles.footerCredits}>Desenvolvido com 💚</Text>
             <Text style={styles.footerChurch}>Igreja Em Campina Grande - PB</Text>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Política de Privacidade"
+              onPress={handleOpenPrivacyPolicy}
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.privacyBtn,
+                pressed && styles.privacyBtnPressed,
+              ]}
+            >
+              <Text style={styles.privacyIcon}>ⓘ</Text>
+              <Text style={styles.privacyBtnText}>Política de Privacidade</Text>
+            </Pressable>
           </View>
         </Animated.View>
       </View>
@@ -569,5 +593,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: THEME_COLORS.mutedDim,
     textAlign: 'center',
+  },
+  privacyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    alignSelf: 'center',
+  },
+  privacyBtnPressed: {
+    opacity: 0.6,
+  },
+  privacyIcon: {
+    fontSize: 12.5,
+    color: THEME_COLORS.mutedDim,
+  },
+  privacyBtnText: {
+    fontFamily: THEME_FONTS.inter.regular,
+    fontSize: 11.5,
+    color: THEME_COLORS.mutedDim,
+    textDecorationLine: 'underline',
   },
 });

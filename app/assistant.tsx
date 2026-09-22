@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
@@ -21,6 +22,7 @@ import {
   ChatMessage,
   sendAssistantQuery,
   SuggestedHymn,
+  submitAssistantFeedback,
 } from '../services/assistantService';
 
 const SUGGESTION_CHIPS = [
@@ -49,6 +51,7 @@ export default function AssistantScreen() {
   const [statusText, setStatusText] = useState('Pronto para ajudar');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [feedbackMap, setFeedbackMap] = useState<Record<string, 'up' | 'down'>>({});
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -88,6 +91,89 @@ export default function AssistantScreen() {
     setStatusText('Pronto para ajudar');
     setIsTyping(false);
     setInputText('');
+  };
+
+  const handleShowInfo = () => {
+    Alert.alert(
+      'Sobre o Assistente do Hinário',
+      'O Assistente utiliza inteligência artificial para localizar hinos por temas, ocasiões ou sentimentos.\n\n• As respostas são geradas automaticamente e podem conter imprecisões.\n• Você pode avaliar as respostas utilizando os botões de curtir ou descurtir (👍 / 👎) em cada mensagem.',
+      [{ text: 'Entendi' }]
+    );
+  };
+
+  const handleVote = (messageId: string, rating: 'up' | 'down') => {
+    const current = feedbackMap[messageId];
+    if (current === rating) {
+      setFeedbackMap((prev) => {
+        const next = { ...prev };
+        delete next[messageId];
+        return next;
+      });
+      return;
+    }
+
+    setFeedbackMap((prev) => ({ ...prev, [messageId]: rating }));
+
+    if (rating === 'down') {
+      Alert.alert(
+        'Como podemos melhorar?',
+        'O que você achou inadequado ou impreciso nesta resposta?',
+        [
+          {
+            text: 'Hino incorreto',
+            onPress: () => {
+              void submitAssistantFeedback({
+                messageId,
+                rating: 'down',
+                reason: 'hino_incorreto',
+                createdAt: new Date().toISOString(),
+              });
+            },
+          },
+          {
+            text: 'Resposta imprecisa',
+            onPress: () => {
+              void submitAssistantFeedback({
+                messageId,
+                rating: 'down',
+                reason: 'resposta_imprecisa',
+                createdAt: new Date().toISOString(),
+              });
+            },
+          },
+          {
+            text: 'Conteúdo impróprio',
+            style: 'destructive',
+            onPress: () => {
+              void submitAssistantFeedback({
+                messageId,
+                rating: 'down',
+                reason: 'conteudo_improprio',
+                createdAt: new Date().toISOString(),
+              });
+              Alert.alert('Obrigado', 'Seu relato foi registrado e ajudará a calibrar o assistente.');
+            },
+          },
+          {
+            text: 'Pular',
+            style: 'cancel',
+            onPress: () => {
+              void submitAssistantFeedback({
+                messageId,
+                rating: 'down',
+                createdAt: new Date().toISOString(),
+              });
+            },
+          },
+        ]
+      );
+    } else {
+      void submitAssistantFeedback({
+        messageId,
+        rating: 'up',
+        createdAt: new Date().toISOString(),
+      });
+    }
   };
 
   const scrollToBottom = () => {
@@ -260,6 +346,64 @@ export default function AssistantScreen() {
               ))}
             </View>
           ) : null}
+
+          {!isUser && !item.isStreaming && !item.isError && item.id !== 'greeting' && (
+            <View style={styles.feedbackRow}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Gostei da resposta"
+                hitSlop={8}
+                onPress={() => handleVote(item.id, 'up')}
+                style={({ pressed }) => [
+                  styles.thumbBtn,
+                  feedbackMap[item.id] === 'up' && styles.thumbBtnActiveUp,
+                  pressed && styles.thumbBtnPressed,
+                ]}
+              >
+                <Svg
+                  width={14}
+                  height={14}
+                  viewBox="0 0 24 24"
+                  fill={feedbackMap[item.id] === 'up' ? THEME_COLORS.goldSoft : 'none'}
+                >
+                  <Path
+                    d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"
+                    stroke={feedbackMap[item.id] === 'up' ? THEME_COLORS.goldSoft : THEME_COLORS.mutedDim}
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Não gostei da resposta"
+                hitSlop={8}
+                onPress={() => handleVote(item.id, 'down')}
+                style={({ pressed }) => [
+                  styles.thumbBtn,
+                  feedbackMap[item.id] === 'down' && styles.thumbBtnActiveDown,
+                  pressed && styles.thumbBtnPressed,
+                ]}
+              >
+                <Svg
+                  width={14}
+                  height={14}
+                  viewBox="0 0 24 24"
+                  fill={feedbackMap[item.id] === 'down' ? '#E57373' : 'none'}
+                >
+                  <Path
+                    d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"
+                    stroke={feedbackMap[item.id] === 'down' ? '#E57373' : THEME_COLORS.mutedDim}
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </Pressable>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -306,23 +450,47 @@ export default function AssistantScreen() {
           </View>
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Nova sessão"
-          hitSlop={10}
-          onPress={handleNewSession}
-          style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
-        >
-          <Svg width={17} height={17} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 005.64 5.64L1 10M23 14L18.36 18.36A9 9 0 013.51 15"
-              stroke={THEME_COLORS.cream}
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </Pressable>
+        <View style={styles.topBarActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sobre o Assistente"
+            hitSlop={10}
+            onPress={handleShowInfo}
+            style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+          >
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={1.8}
+              />
+              <Path
+                d="M12 16V12M12 8H12.01"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Nova sessão"
+            hitSlop={10}
+            onPress={handleNewSession}
+            style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+          >
+            <Svg width={17} height={17} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M1 4V10H7M23 20V14H17M20.49 9A9 9 0 005.64 5.64L1 10M23 14L18.36 18.36A9 9 0 013.51 15"
+                stroke={THEME_COLORS.cream}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Pressable>
+        </View>
       </View>
 
       {/* Messages List & Keyboard Avoiding */}
@@ -403,6 +571,9 @@ export default function AssistantScreen() {
               </Svg>
             </Pressable>
           </View>
+          <Text style={styles.aiDisclaimer}>
+            O assistente utiliza inteligência artificial e pode cometer imprecisões.
+          </Text>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -597,5 +768,48 @@ const styles = StyleSheet.create({
   },
   sendBtnPressed: {
     transform: [{ scale: 0.94 }],
+  },
+  topBarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  feedbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+    marginTop: 8,
+    paddingTop: 2,
+  },
+  thumbBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(218, 215, 205, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(218, 215, 205, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbBtnActiveUp: {
+    backgroundColor: 'rgba(163, 177, 138, 0.16)',
+    borderColor: THEME_COLORS.goldSoft,
+  },
+  thumbBtnActiveDown: {
+    backgroundColor: 'rgba(229, 115, 115, 0.16)',
+    borderColor: '#E57373',
+  },
+  thumbBtnPressed: {
+    transform: [{ scale: 0.92 }],
+    opacity: 0.8,
+  },
+  aiDisclaimer: {
+    textAlign: 'center',
+    fontFamily: THEME_FONTS.sansRegular,
+    fontSize: 11,
+    color: THEME_COLORS.mutedDim,
+    paddingVertical: 4,
+    paddingHorizontal: 16,
   },
 });
