@@ -1,4 +1,5 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface SuggestedHymn {
   id: string;
@@ -114,3 +115,54 @@ export async function sendAssistantQuery({
     throw errorObj;
   }
 }
+
+export interface MessageFeedback {
+  messageId: string;
+  rating: 'up' | 'down';
+  reason?: string;
+  createdAt: string;
+}
+
+const FEEDBACK_STORAGE_KEY = '@hinario:assistant_feedbacks';
+
+/**
+ * Registra o voto do usuário (positivo ou negativo) localmente para histórico
+ * e tenta despachar para o endpoint institucional da igreja.
+ */
+export async function submitAssistantFeedback(feedback: MessageFeedback): Promise<void> {
+  // 1. Armazenamento local persistente para auditoria e histórico
+  try {
+    const raw = await AsyncStorage.getItem(FEEDBACK_STORAGE_KEY);
+    const list: MessageFeedback[] = raw ? JSON.parse(raw) : [];
+    // Substitui voto anterior da mesma mensagem se houver
+    const filtered = list.filter((item) => item.messageId !== feedback.messageId);
+    filtered.push(feedback);
+    await AsyncStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(filtered));
+  } catch (err) {
+    console.warn('Falha ao persistir feedback localmente:', err);
+  }
+
+  // 2. Envio remoto opcional (fire-and-forget caso o backend possua o endpoint ativo)
+  try {
+    await axios.post(
+      'https://www.igrejaemcampinagrande.com.br/api/hinario/feedback',
+      feedback,
+      { timeout: 4000 }
+    );
+  } catch {
+    // Falha silenciosa se o backend ainda não tiver implementado essa rota
+  }
+}
+
+/**
+ * Retorna todos os feedbacks de respostas já registrados no dispositivo.
+ */
+export async function getAssistantFeedbacks(): Promise<MessageFeedback[]> {
+  try {
+    const raw = await AsyncStorage.getItem(FEEDBACK_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
