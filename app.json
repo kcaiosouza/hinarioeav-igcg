@@ -48,6 +48,13 @@
     "experiments": {
       "typedRoutes": true,
       "baseUrl": "/hinario"
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4bc5eeac-7576-41bb-8458-db9f9ba23c54"
+      }
+    },
+    "owner": "kcaiosouza"
   }
 }
