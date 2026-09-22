@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.igrejaemcampinagrande.hinarioeav",
+      "bundleIdentifier": "br.com.igrejacg.hinarioeav",
       "buildNumber": "1",
       "infoPlist": {
         "CFBundleDisplayName": "Hinário EAV",
@@ -18,7 +18,7 @@
       }
     },
     "android": {
-      "package": "br.com.igrejaemcampinagrande.hinarioeav",
+      "package": "br.com.igrejacg.hinarioeav",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#152c1d",
