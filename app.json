@@ -43,7 +43,17 @@
         }
       ],
       "expo-asset",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "-keep class com.swmansion.reanimated.** { *; }\n-keep class com.facebook.react.** { *; }\n-keepattributes *Annotation*\n-dontwarn com.facebook.react.**\n-dontwarn com.swmansion.reanimated.**"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
