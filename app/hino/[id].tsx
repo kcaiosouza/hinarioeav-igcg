@@ -462,7 +462,7 @@ export default function HinoDetailScreen() {
           {/* Hymn Header Area */}
           <View style={styles.headerArea}>
             <Text style={styles.categoryBadge}>{hino.categoria}</Text>
-            <Text style={styles.hymnTitle}>
+            <Text selectable style={styles.hymnTitle}>
               {hino.numero}. {hino.titulo}
             </Text>
             <View style={styles.divider} />
@@ -473,6 +473,7 @@ export default function HinoDetailScreen() {
             <View key={idx} style={styles.stanzaBlock}>
               <Text style={styles.stanzaLabel}>Estrofe {idx + 1}</Text>
               <Text
+                selectable
                 style={[
                   styles.stanzaText,
                   { fontSize, lineHeight: Math.round(fontSize * 1.6) },
@@ -484,6 +485,7 @@ export default function HinoDetailScreen() {
                 <View style={styles.chorusCard}>
                   <Text style={styles.chorusLabel}>CORO</Text>
                   <Text
+                    selectable
                     style={[
                       styles.chorusText,
                       { fontSize, lineHeight: Math.round(fontSize * 1.6) },
