@@ -18,7 +18,7 @@ export interface ToastSuggestion {
 
 export interface ToastNoticeProps {
   visible: boolean;
-  bookName: string;
+  bookName?: string;
   message: string;
   suggestion?: ToastSuggestion;
   onClose: () => void;
@@ -140,7 +140,7 @@ export function ToastNotice({
     >
       <View style={styles.card}>
         <View style={styles.headerRow}>
-          <Text style={styles.bookLabel}>{bookName}</Text>
+          {bookName ? <Text style={styles.bookLabel}>{bookName}</Text> : <View />}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Fechar aviso"

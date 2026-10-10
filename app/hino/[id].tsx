@@ -22,7 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { HymnOptionsSheet } from "../../components/hinario/HymnOptionsSheet";
-import { Toast } from "../../components/ui/Toast";
+import { ToastNotice } from "../../components/hinario/ToastNotice";
 import { THEME_COLORS, THEME_FONTS } from "../../constants/theme";
 import { INITIAL_BOOKS } from "../../data/mockHinario";
 import { MOCK_HINOS } from "../../data/mockHinos";
@@ -132,6 +132,7 @@ export default function HinoDetailScreen() {
   const [fontSize, setFontSize] = useState<number>(18);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const currentBookKey: BookKey = useMemo(() => {
@@ -152,7 +153,7 @@ export default function HinoDetailScreen() {
     const targetNum = hino.numero + 1;
     const targetHino = getHino(currentBookKey, targetNum);
     if (!targetHino) {
-      Toast.show("Você já está no último hino deste hinário");
+      setToastMessage("Você já está no último hino deste hinário");
       return;
     }
     setHino(targetHino);
@@ -168,12 +169,12 @@ export default function HinoDetailScreen() {
     if (!hino || hino.numero <= 0) return;
     const targetNum = hino.numero - 1;
     if (targetNum < 1) {
-      Toast.show("Você já está no primeiro hino deste hinário");
+      setToastMessage("Você já está no primeiro hino deste hinário");
       return;
     }
     const targetHino = getHino(currentBookKey, targetNum);
     if (!targetHino) {
-      Toast.show("Você já está no primeiro hino deste hinário");
+      setToastMessage("Você já está no primeiro hino deste hinário");
       return;
     }
     setHino(targetHino);
@@ -329,7 +330,7 @@ export default function HinoDetailScreen() {
 
   const handleOpenSheetMusic = () => {
     if (!hasPartitura(currentBookKey, hino?.numero)) {
-      Toast.show("Partitura ainda não adicionada para este hino...");
+      setToastMessage("Partitura ainda não adicionada para este hino...");
       return;
     }
 
@@ -366,10 +367,10 @@ export default function HinoDetailScreen() {
     try {
       const text = formatHymnForClipboard(hino);
       await Clipboard.setStringAsync(text);
-      Toast.show("Letra copiada para a área de transferência!");
+      setToastMessage("Letra copiada para a área de transferência!");
     } catch (err) {
       console.error("Erro ao copiar letra:", err);
-      Toast.show("Não foi possível copiar a letra");
+      setToastMessage("Não foi possível copiar a letra");
     }
   };
 
@@ -385,7 +386,6 @@ export default function HinoDetailScreen() {
 
     const found = resolveHino(id, book, title);
     if (!found) {
-      Toast.show("Hino não encontrado");
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -483,6 +483,14 @@ export default function HinoDetailScreen() {
           </Pressable>
         </View>
 
+        <ToastNotice
+          visible={!!toastMessage}
+          bookName={hino.categoria}
+          message={toastMessage ?? ""}
+          onClose={() => setToastMessage(null)}
+          duration={3000}
+        />
+
         {/* Lyrics & Stanzas ScrollArea */}
         <ScrollView
           ref={scrollViewRef}
@@ -550,6 +558,7 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     width: "100%",
     alignSelf: "center",
+    position: "relative",
   },
   loadingContainer: {
     flex: 1,
