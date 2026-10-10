@@ -1,3 +1,4 @@
+import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -81,6 +82,23 @@ function resolveHino(
   }
 
   return null;
+}
+
+function formatHymnForClipboard(hino: Hino): string {
+  const parts: string[] = [];
+  parts.push(`${hino.numero}. ${hino.titulo}\n`);
+
+  hino.estrofes.forEach((estrofe, idx) => {
+    parts.push(estrofe);
+    if (hino.coro && idx === 0) {
+      parts.push(`\n[Coro]\n${hino.coro}`);
+    }
+    if (idx < hino.estrofes.length - 1) {
+      parts.push("");
+    }
+  });
+
+  return parts.join("\n");
 }
 
 export default function HinoDetailScreen() {
@@ -234,7 +252,7 @@ export default function HinoDetailScreen() {
           );
         },
         onPanResponderTerminationRequest: () => false,
-        onShouldBlockNativeResponder: () => true,
+        onShouldBlockNativeResponder: () => false,
         onPanResponderRelease: (evt, gestureState) => {
           const startX = getStartX(evt, gestureState);
           touchStartXRef.current = 0;
@@ -343,6 +361,18 @@ export default function HinoDetailScreen() {
     );
   };
 
+  const handleCopyLyrics = async () => {
+    if (!hino) return;
+    try {
+      const text = formatHymnForClipboard(hino);
+      await Clipboard.setStringAsync(text);
+      Toast.show("Letra copiada para a área de transferência!");
+    } catch (err) {
+      console.error("Erro ao copiar letra:", err);
+      Toast.show("Não foi possível copiar a letra");
+    }
+  };
+
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   }, [id]);
@@ -397,6 +427,7 @@ export default function HinoDetailScreen() {
         onOpenSheetMusic={handleOpenSheetMusic}
         onOpenIGCGMusic={handleOpenIGCGMusic}
         hasSheetMusic={hasPartitura(currentBookKey, hino?.numero)}
+        onCopyLyrics={handleCopyLyrics}
       />
       <View style={styles.container} {...panResponder.panHandlers}>
         {/* Top Navigation Bar */}
@@ -462,7 +493,11 @@ export default function HinoDetailScreen() {
           {/* Hymn Header Area */}
           <View style={styles.headerArea}>
             <Text style={styles.categoryBadge}>{hino.categoria}</Text>
-            <Text selectable style={styles.hymnTitle}>
+            <Text
+              selectable
+              selectionColor="rgba(212, 175, 55, 0.45)"
+              style={styles.hymnTitle}
+            >
               {hino.numero}. {hino.titulo}
             </Text>
             <View style={styles.divider} />
@@ -474,6 +509,7 @@ export default function HinoDetailScreen() {
               <Text style={styles.stanzaLabel}>Estrofe {idx + 1}</Text>
               <Text
                 selectable
+                selectionColor="rgba(212, 175, 55, 0.45)"
                 style={[
                   styles.stanzaText,
                   { fontSize, lineHeight: Math.round(fontSize * 1.6) },
@@ -486,6 +522,7 @@ export default function HinoDetailScreen() {
                   <Text style={styles.chorusLabel}>CORO</Text>
                   <Text
                     selectable
+                    selectionColor="rgba(212, 175, 55, 0.45)"
                     style={[
                       styles.chorusText,
                       { fontSize, lineHeight: Math.round(fontSize * 1.6) },

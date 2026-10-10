@@ -23,6 +23,7 @@ export interface HymnOptionsSheetProps {
   onOpenSheetMusic: () => void;
   onOpenIGCGMusic: () => void;
   hasSheetMusic?: boolean;
+  onCopyLyrics?: () => void;
 }
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -37,6 +38,7 @@ export function HymnOptionsSheet({
   onOpenSheetMusic,
   onOpenIGCGMusic,
   hasSheetMusic,
+  onCopyLyrics,
 }: HymnOptionsSheetProps) {
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(visible);
@@ -271,7 +273,46 @@ export function HymnOptionsSheet({
               </Text>
             </Pressable>
 
-            {/* 3. Sheet Music Action */}
+            {/* 3. Copy Full Lyrics Action */}
+            {onCopyLyrics && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Copiar letra completa do hino"
+                onPress={() => handleClose(onCopyLyrics)}
+                style={({ pressed }) => [
+                  styles.optionButton,
+                  pressed && styles.optionButtonPressed,
+                ]}
+              >
+                <View style={styles.optionLeft}>
+                  <Text style={styles.optionIcon}>📋</Text>
+                  <View>
+                    <Text style={styles.optionLabel}>Copiar Letra Completa</Text>
+                    <Text style={styles.optionSublabel}>
+                      Copiar o texto do hino formatado
+                    </Text>
+                  </View>
+                </View>
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M8 4v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2h-8a2 2 0 00-2 2z"
+                    stroke={THEME_COLORS.muted}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <Path
+                    d="M16 18v2a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2"
+                    stroke={THEME_COLORS.muted}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </Pressable>
+            )}
+
+            {/* 4. Sheet Music Action */}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
