@@ -2,7 +2,7 @@
   "expo": {
     "name": "Hinário EAV",
     "slug": "hinarioeav",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hinarioeav",
@@ -10,7 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "br.com.igrejacg.hinarioeav",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "CFBundleDisplayName": "Hinário EAV",
         "ITSAppUsesNonExemptEncryption": false,
@@ -19,7 +19,7 @@
     },
     "android": {
       "package": "br.com.igrejacg.hinarioeav",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#152c1d",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
