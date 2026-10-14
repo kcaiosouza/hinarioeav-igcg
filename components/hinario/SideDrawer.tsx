@@ -43,13 +43,6 @@ const MENU_ITEMS: MenuItem[] = [
   { key: 'hinario', label: 'Hinário', icon: '📖', route: '/' },
   { key: 'search', label: 'Buscar', icon: '🔍', route: '/search' },
   { key: 'favorites', label: 'Favoritos', icon: '⭐', route: '/favorites' },
-  {
-    key: 'assistant',
-    label: 'Assistente do Hinário',
-    icon: '✨',
-    route: '/assistant',
-    badge: 'IA',
-  },
 ];
 
 export function SideDrawer({ visible, onClose, activeRoute = '/' }: SideDrawerProps) {
